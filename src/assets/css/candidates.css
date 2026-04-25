@@ -1,0 +1,135 @@
+.candidates-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f4f7f6;
+}
+
+.candidates-main {
+    flex: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    width: 100%;
+}
+
+.back-link {
+    color: #ff6b6b;
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: inline-block;
+    transition: 0.3s;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.election-info {
+    margin-bottom: 40px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 20px;
+}
+
+.election-info h1 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.election-info p {
+    color: #888;
+}
+
+/* Candidates Grid */
+.candidates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    animation: fadeIn 0.8s ease;
+}
+
+.candidate-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    transition: 0.3s;
+    border: 1px solid transparent;
+}
+
+.candidate-card:hover {
+    transform: translateY(-10px);
+    border-color: #ff6b6b;
+}
+
+.candidate-avatar img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff5f5;
+    margin-bottom: 20px;
+}
+
+.candidate-info h3 {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.position-tag {
+    display: inline-block;
+    background: #fff0f0;
+    color: #ff6b6b;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.candidate-desc {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    min-height: 65px;
+}
+
+.candidate-stats {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.btn-vote-now {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
+}
+
+.btn-vote-now:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+    .candidates-grid { grid-template-columns: 1fr; }
+}

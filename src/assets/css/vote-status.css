@@ -1,0 +1,91 @@
+.status-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f8f9fa;
+}
+
+.status-main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.status-card {
+    background: #fff;
+    max-width: 500px;
+    width: 100%;
+    padding: 50px 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+    animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Biến đổi màu sắc dựa trên class */
+.status-card.success { border-top: 6px solid #2ecc71; }
+.status-card.error { border-top: 6px solid #ff4757; }
+
+.status-icon {
+    font-size: 70px;
+    margin-bottom: 20px;
+}
+
+.status-title {
+    font-size: 26px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.status-message {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 35px;
+}
+
+/* Nút bấm */
+.status-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.status-actions button {
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-results, .btn-retry {
+    background: #ff6b6b;
+    color: white;
+}
+
+.btn-results:hover, .btn-retry:hover {
+    background: #ee5253;
+    transform: translateY(-2px);
+}
+
+.btn-home {
+    background: #f1f2f6;
+    color: #57606f;
+}
+
+.btn-home:hover {
+    background: #dfe4ea;
+}
+
+/* Hiệu ứng */
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 480px) {
+    .status-card { padding: 30px 20px; }
+}

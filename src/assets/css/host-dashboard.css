@@ -1,0 +1,155 @@
+.host-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f0f2f5;
+}
+
+.host-main {
+    flex: 1;
+    display: flex;
+    padding: 30px 80px;
+    gap: 30px;
+}
+
+/* Sidebar */
+.host-sidebar {
+    width: 250px;
+    background: #fff;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    height: fit-content;
+}
+
+.host-sidebar h2 {
+    font-size: 20px;
+    margin-bottom: 25px;
+    color: #333;
+    border-bottom: 2px solid #ff6b6b;
+    padding-bottom: 10px;
+}
+
+.host-sidebar ul {
+    list-style: none;
+}
+
+.host-sidebar li {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    color: #666;
+    font-weight: 500;
+}
+
+.host-sidebar li.active, .host-sidebar li:hover {
+    background: #fff5f5;
+    color: #ff6b6b;
+}
+
+/* Content Area */
+.host-content {
+    flex: 1;
+    background: #fff;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.btn-add {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Table Style */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 15px;
+    background: #f8f9fa;
+    color: #888;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.admin-table td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+    color: #444;
+}
+
+/* Badge & Buttons */
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+/* Sub Navigation bên trong Host Content */
+.sub-navigation {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.sub-navigation button {
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    padding: 5px 0;
+    position: relative;
+    transition: 0.3s;
+}
+
+.sub-navigation button:hover {
+    color: #ff6b6b;
+}
+
+.sub-navigation button.active-link {
+    color: #ff6b6b;
+}
+
+.sub-navigation button.active-link::after {
+    content: "";
+    position: absolute;
+    bottom: -11px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #ff6b6b;
+    border-radius: 10px;
+}
+.status-on { background: #e3fcef; color: #00b894; }
+.status-voted { background: #e3f2fd; color: #1976d2; }
+
+.btn-edit { color: #0984e3; border: none; background: none; margin-right: 10px; cursor: pointer; }
+.btn-delete { color: #d63031; border: none; background: none; cursor: pointer; }
+
+@media (max-width: 992px) {
+    .host-main { flex-direction: column; padding: 20px; }
+    .host-sidebar { width: 100%; }
+}

@@ -1,0 +1,213 @@
+/* --- Navbar --- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 80px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff6b6b;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+.nav-links li {
+    font-weight: 500;
+    color: #555;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.nav-links li:hover {
+    color: #ff6b6b;
+}
+
+.nav-auth {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-login {
+    background: transparent;
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-register {
+    background: #ff6b6b;
+    border: none;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* --- Footer --- */
+.home-footer {
+    padding: 20px;
+    text-align: center;
+    background: #fff;
+    font-size: 14px;
+    color: #999;
+    border-top: 1px solid #eee;
+}
+
+.home-footer span {
+    color: #ff6b6b;
+    font-weight: bold;
+}
+.user-app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content-area {
+    flex: 1; /* Đẩy footer xuống dưới cùng */
+}
+/* Container chính của Menu User */
+.user-menu-container {
+    position: relative;
+    user-select: none;
+}
+
+/* Avatar nhỏ trên Header */
+.avatar-small {
+    width: 32px;
+    height: 32px;
+    background-color: #1890ff;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Khung Dropdown */
+.nav-dropdown {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    width: 180px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px 0;
+    z-index: 1000;
+    border: 1px solid #eee;
+}
+
+/* Từng dòng trong Menu */
+.dropdown-item {
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #333;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #f5f5f5;
+    color: #1890ff;
+}
+
+/* Đường gạch ngang giữa các mục */
+.dropdown-divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 4px 0;
+}
+
+/* Mục đăng xuất có màu đỏ khi hover */
+.dropdown-item.logout:hover {
+    color: #ff4d4f;
+    background-color: #fff1f0;
+}.user-menu-container {
+     position: relative;
+ }
+
+.avatar-small {
+    width: 32px;
+    height: 32px;
+    background-color: #1890ff;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.nav-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 10px;
+    width: 180px;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.dropdown-item {
+    padding: 12px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #333;
+}
+
+.dropdown-item:hover {
+    background-color: #f5f5f5;
+    color: #1890ff;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #e8e8e8;
+}
+
+.dropdown-item.logout {
+    color: #ff4d4f;
+}
+
+.dropdown-item.logout:hover {
+    background-color: #fff1f0;
+}
+/* header-footer.css */
+.user-menu-container {
+    position: relative; /* Gốc tọa độ cho dropdown */
+}
+
+.nav-dropdown {
+    position: absolute;
+    top: 100%; /* Hiển thị ngay dưới header */
+    right: 0;
+    margin-top: 10px;
+    width: 180px;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+}

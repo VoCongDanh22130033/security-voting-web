@@ -1,157 +1,211 @@
+/* --- TỔNG THỂ & BACKGROUND (Đồng bộ với Candidate) --- */
 .elections-container {
     min-height: 100vh;
+    padding: 80px 20px 40px 20px;
+    position: relative;
+    /* Sử dụng cùng tone màu background với trang Candidate */
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background-attachment: fixed;
     display: flex;
     flex-direction: column;
-    background: #f8f9fa;
+    align-items: center;
 }
 
-.elections-main {
-    flex: 1;
-    padding: 40px 80px;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
+/* --- NÚT GÓC TRÊN BÊN TRÁI --- */
+.btn-top-left {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    padding: 12px 24px;
+    background-color: #ffffff;
+    color: #2c3e50;
+    border: 2px solid #3498db;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 100;
 }
 
+.btn-top-left:hover {
+    background-color: #3498db;
+    color: white;
+    transform: translateX(-5px);
+    box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* --- HEADER --- */
 .elections-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
+    color: #2c3e50;
 }
 
 .elections-header h1 {
-    font-size: 32px;
-    color: #333;
+    font-size: 2.8rem;
     margin-bottom: 10px;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
 }
 
-.elections-header p {
-    color: #666;
-}
-
-/* Filter Bar */
+/* --- FILTER BAR --- */
 .filter-bar {
     display: flex;
-    justify-content: center;
     gap: 15px;
     margin-bottom: 40px;
+    justify-content: center;
 }
 
 .filter-bar button {
-    padding: 10px 20px;
-    border-radius: 20px;
-    border: 1px solid #ddd;
-    background: #fff;
-    cursor: pointer;
-    transition: 0.3s;
-    font-weight: 500;
-}
-
-.filter-bar button.active, .filter-bar button:hover {
-    background: #ff6b6b;
-    color: #fff;
-    border-color: #ff6b6b;
-}
-
-/* Election Grid */
-.election-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
-    animation: fadeInUp 0.8s ease;
-}
-
-.election-card {
-    background: #fff;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    transition: transform 0.3s;
-}
-
-.election-card:hover {
-    transform: translateY(-5px);
-}
-
-.card-image {
-    height: 180px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-}
-
-.status-tag {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    color: #fff;
-}
-
-.status-tag.ongoing { background: #2ecc71; }
-.status-tag.upcoming { background: #3498db; }
-.status-tag.ended { background: #95a5a6; }
-
-.card-body {
-    padding: 20px;
-}
-
-.card-body h3 {
-    margin-bottom: 10px;
-    font-size: 20px;
-    color: #333;
-}
-
-.card-body p {
-    font-size: 14px;
-    color: #777;
-    line-height: 1.5;
-    height: 65px;
-    overflow: hidden;
-}
-
-.card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
-}
-
-.end-date {
-    font-size: 12px;
-    color: #999;
-}
-
-.vote-btn {
-    background: #ff6b6b;
-    color: #fff;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
+    padding: 10px 25px;
+    border-radius: 25px;
+    border: 1px solid #fff;
+    background: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     font-weight: 600;
     transition: 0.3s;
 }
 
-.vote-btn:disabled {
-    background: #ddd;
-    cursor: not-allowed;
+.filter-bar button.active {
+    background: #3498db;
+    color: white;
+    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+}
+
+/* --- GRID HỆ THỐNG CỘT --- */
+.election-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* --- KHUNG CHO CÁC CỘT (CARD) --- */
+.election-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(5px);
+    transition: all 0.4s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.election-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Phần hình ảnh card */
+.card-image-container {
+    height: 180px;
+    background: linear-gradient(45deg, #2193b0, #6dd5ed);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-tag {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+}
+
+.status-tag.ongoing { background: #27ae60; }
+.status-tag.ended { background: #e74c3c; }
+
+/* Thân Card */
+.card-body {
+    padding: 25px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body h3 {
+    font-size: 1.4rem;
+    color: #2c3e50;
+    margin-bottom: 12px;
+}
+
+.election-desc {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* Chân Card */
+.card-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.date-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #34495e;
+    font-size: 0.9rem;
+}
+
+/* NÚT BÌNH CHỌN NỔI BẬT */
+.vote-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
 }
 
 .vote-btn:hover:not(:disabled) {
-    background: #ee5253;
+    background: linear-gradient(135deg, #2980b9, #1c5980);
+    transform: scale(1.02);
 }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+.vote-btn:disabled {
+    background: #bdc3c7;
+    box-shadow: none;
+    cursor: not-allowed;
 }
 
+/* --- RESPONSIVE --- */
 @media (max-width: 768px) {
-    .elections-main { padding: 40px 20px; }
-    .filter-bar { flex-wrap: wrap; }
+    .btn-top-left {
+        top: 15px;
+        left: 15px;
+        padding: 8px 16px;
+    }
+
+    .elections-header h1 {
+        font-size: 2rem;
+    }
+
+    .election-grid {
+        grid-template-columns: 1fr;
+    }
 }

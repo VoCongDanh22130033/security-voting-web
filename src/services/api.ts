@@ -5,7 +5,7 @@ const api = axios.create({
   baseURL: "http://localhost:8080", // gateway URL
 });
 
-// 2. Interceptor tự động gắn token (Đã đúng)
+// 2. Interceptor tự động gắn token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -14,9 +14,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Định nghĩa các hàm gọi API
 export const getElections = () => api.get('/api/elections');
 
 export const getCandidates = (electionId: number) =>
     api.get(`/api/elections/${electionId}/candidates`);
 
+// Hàm bỏ phiếu sử dụng instance api đã cấu hình
+export const castVote = (voteData: { electionId: number; candidateId: number }) =>
+    api.post('/api/votes/cast', voteData);
+
+// Export mặc định instance để sử dụng ở nơi khác nếu cần
 export default api;

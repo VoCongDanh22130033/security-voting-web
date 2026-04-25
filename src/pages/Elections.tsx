@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getElections } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import '../assets/css/elections.css';
 
 const Elections = () => {
     const [elections, setElections] = useState([]);
@@ -11,41 +12,57 @@ const Elections = () => {
     }, []);
 
     return (
-        <div className="container mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-4">Danh sách cuộc bầu cử</h1>
-            <div className="overflow-x-auto bg-white rounded-lg shadow">
-                <table className="min-w-full leading-normal">
-                    <thead>
-                    <tr className="bg-blue-600 text-white">
-                        <th className="px-5 py-3 border-b-2 text-left text-sm uppercase font-semibold">Tên cuộc bầu cử</th>
-                        <th className="px-5 py-3 border-b-2 text-left text-sm uppercase font-semibold">Trạng thái</th>
-                        <th className="px-5 py-3 border-b-2 text-left text-sm uppercase font-semibold">Hành động</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+        <div className="elections-container">
+            {/* Nút ở góc trên bên trái tương tự bên Candidate */}
+            <button className="btn-top-left" onClick={() => navigate('/')}>
+                ← Trang chủ
+            </button>
+
+            <main className="elections-main">
+                <header className="elections-header">
+                    <h1>Hệ Thống Bầu Cử</h1>
+                    <p>Chọn một cuộc bầu cử để thực hiện quyền công dân của bạn</p>
+                </header>
+
+                <div className="filter-bar">
+                    <button className="active">Tất cả</button>
+                    <button>Đang diễn ra</button>
+                    <button>Đã kết thúc</button>
+                </div>
+
+                <div className="election-grid">
                     {elections.map((election: any) => (
-                        <tr key={election.id} className="hover:bg-gray-50">
-                            <td className="px-5 py-5 border-b border-gray-200 text-sm">
-                                <p className="text-gray-900 font-medium">{election.title}</p>
-                            </td>
-                            <td className="px-5 py-5 border-b border-gray-200 text-sm">
-                                    <span className={`px-2 py-1 rounded ${election.status === 'OPEN' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
-                                        {election.status}
+                        <div key={election.id} className="election-card">
+                            <div className="card-image-container">
+                                <div className="card-image-placeholder">
+                                    <span className={`status-tag ${election.status === 'OPEN' ? 'ongoing' : 'ended'}`}>
+                                        {election.status === 'OPEN' ? 'Đang diễn ra' : 'Đã kết thúc'}
                                     </span>
-                            </td>
-                            <td className="px-5 py-5 border-b border-gray-200 text-sm">
-                                <button
-                                    onClick={() => navigate(`/candidates?electionId=${election.id}`)}
-                                    className="text-blue-600 hover:text-blue-900 font-semibold"
-                                >
-                                    Xem ứng viên
-                                </button>
-                            </td>
-                        </tr>
+                                </div>
+                            </div>
+                            <div className="card-body">
+                                <h3>{election.title}</h3>
+                                <p className="election-desc">
+                                    {election.description || "Cuộc bầu cử quan trọng nhằm tìm ra người đại diện ưu tú nhất."}
+                                </p>
+                                <div className="card-footer">
+                                    <div className="date-info">
+                                        <small>Hạn chót:</small>
+                                        <span>{election.endDate || "31/12/2026"}</span>
+                                    </div>
+                                    <button
+                                        className="vote-btn"
+                                        disabled={election.status !== 'OPEN'}
+                                        onClick={() => navigate(`/candidates?electionId=${election.id}`)}
+                                    >
+                                        {election.status === 'OPEN' ? 'Tham gia ngay' : 'Xem kết quả'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     ))}
-                    </tbody>
-                </table>
-            </div>
+                </div>
+            </main>
         </div>
     );
 };

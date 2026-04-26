@@ -1,84 +1,132 @@
-import {useEffect, useState} from 'react';
-import {useSearchParams, useNavigate} from 'react-router-dom';
-// Sửa phần import: sử dụng castVote thay vì api
-import {getCandidates, castVote} from '../services/api';
-import Swal from 'sweetalert2';
-import '../assets/css/candidates.css';
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { getCandidates, castVote } from "../services/api";
+import Swal from "sweetalert2";
+import "../assets/css/candidates.css";
 
 const Candidates = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const electionId = searchParams.get('electionId');
-  const [candidates, setCandidates] = useState([]);
+  const electionId = searchParams.get("electionId");
+
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (electionId) {
-      getCandidates(Number(electionId)).then(res => setCandidates(res.data));
+      getCandidates(Number(electionId)).then(res => {
+        // giả lập vote count
+        const data = res.data.map((c: any) => ({
+          ...c,
+          votes: Math.floor(Math.random() * 100)
+        }));
+        setCandidates(data);
+      });
     }
   }, [electionId]);
 
-  const handleVote = async (candidateId: number, candidateName: string) => {
+  // tính tổng vote
+  const totalVotes = candidates.reduce((sum, c) => sum + c.votes, 0);
+
+  const handleVote = async (id: number, name: string) => {
     const result = await Swal.fire({
-      title: 'Xác nhận bỏ phiếu',
-      text: `Bạn có chắc chắn muốn bầu cho ứng viên ${candidateName}?`,
-      icon: 'question',
+      title: "Xác nhận bỏ phiếu",
+      text: `Bạn chọn ${name}?`,
+      icon: "question",
       showCancelButton: true,
-      confirmButtonColor: '#3498db',
-      cancelButtonColor: '#95a5a6',
-      confirmButtonText: 'Đồng ý',
-      cancelButtonText: 'Hủy'
+      confirmButtonText: "Đồng ý",
+      cancelButtonText: "Hủy",
+      reverseButtons: true // (optional: đảo vị trí cho giống UI VN)
     });
 
     if (result.isConfirmed) {
+      setIsSubmitting(true);
+
       try {
-        // Sử dụng hàm castVote đã import
         await castVote({
           electionId: Number(electionId),
-          candidateId: candidateId
+          candidateId: id
         });
 
-        await Swal.fire('Thành công!', 'Phiếu bầu đã được ghi nhận.', 'success');
-        navigate('/elections');
-      } catch (error: any) {
-        Swal.fire('Thất bại', 'Không thể bỏ phiếu. Vui lòng thử lại!', 'error');
+        // cập nhật realtime UI
+        setCandidates(prev =>
+            prev.map(c =>
+                c.id === id ? { ...c, votes: c.votes + 1 } : c
+            )
+        );
+
+        Swal.fire({
+          title: "Thành công",
+          text: "Đã ghi nhận phiếu",
+          icon: "success",
+          confirmButtonText: "OK"
+        });
+
+      } catch (e: any) {
+        Swal.fire("Lỗi", "Không thể bỏ phiếu", "error");
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
 
   return (
       <div className="candidates-container">
-        <button className="btn-back" onClick={() => navigate('/elections')}>
+
+        <button className="btn-back" onClick={() => navigate("/elections")}>
           ← Quay lại
         </button>
 
-        <main className="candidates-main">
-          <div className="election-info">
-            <h1>Danh Sách Ứng Viên</h1>
-            <p>Mã cuộc bầu cử: #{electionId}</p>
-          </div>
+        <div className="election-info">
+          <h1>Danh sách ứng viên</h1>
+          <p>Cuộc bầu cử #{electionId}</p>
+        </div>
 
-          <div className="candidates-grid">
-            {candidates.map((candidate: any) => (
-                <div key={candidate.id} className="candidate-card">
+        <div className="candidates-grid">
+          {candidates.map((c, index) => {
+            const percent = totalVotes
+                ? ((c.votes / totalVotes) * 100).toFixed(1)
+                : 0;
+
+            return (
+                <motion.div
+                    key={c.id}
+                    className="candidate-card"
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.05 }}
+                >
                   <div className="candidate-avatar">
-                    <img
-                        src={`https://ui-avatars.com/api/?name=${candidate.name}&background=random`}
-                        alt={candidate.name}/>
+                    <img src={`https://ui-avatars.com/api/?name=${c.name}`} />
                   </div>
-                  <div className="candidate-info">
-                    <h3>{candidate.name}</h3>
-                    <p>{candidate.description}</p>
-                    <button
-                        className="btn-vote-now"
-                        onClick={() => handleVote(candidate.id, candidate.name)}
-                    >
-                      Bỏ phiếu ngay
-                    </button>
+
+                  <h3>{c.name}</h3>
+
+                  <p>{c.description || "Ứng viên tranh cử"}</p>
+
+                  {/* PROGRESS */}
+                  <div className="vote-progress">
+                    <div
+                        className="vote-progress-bar"
+                        style={{ width: `${percent}%` }}
+                    />
                   </div>
-                </div>
-            ))}
-          </div>
-        </main>
+
+                  <small>{percent}% phiếu bầu</small>
+
+                  <button
+                      className="btn-vote-now"
+                      disabled={isSubmitting}
+                      onClick={() => handleVote(c.id, c.name)}
+                  >
+                    {isSubmitting ? "Đang xử lý..." : "Bỏ phiếu"}
+                  </button>
+                </motion.div>
+            );
+          })}
+        </div>
       </div>
   );
 };

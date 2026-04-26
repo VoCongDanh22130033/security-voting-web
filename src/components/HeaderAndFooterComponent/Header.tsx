@@ -29,7 +29,7 @@ const Header: React.FC = () => {
   return (
       <nav className="navbar">
         <div className="nav-logo" onClick={() => navigate("/home")} style={{ cursor: 'pointer' }}>
-          🗳️ E-Voting
+          SecuVote
         </div>
 
         <ul className="nav-links">

@@ -1,210 +1,170 @@
-/* --- TỔNG THỂ & BACKGROUND (Đồng bộ với Candidate) --- */
+/* --- BACKGROUND --- */
 .elections-container {
     min-height: 100vh;
-    padding: 80px 20px 40px 20px;
-    position: relative;
-    /* Sử dụng cùng tone màu background với trang Candidate */
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    background-attachment: fixed;
+    padding: 90px 20px 40px;
+    background: #f4f6f9;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-/* --- NÚT GÓC TRÊN BÊN TRÁI --- */
+/* --- NÚT TRANG CHỦ --- */
 .btn-top-left {
     position: absolute;
     top: 25px;
     left: 25px;
-    padding: 12px 24px;
-    background-color: #ffffff;
-    color: #2c3e50;
-    border: 2px solid #3498db;
-    border-radius: 50px;
+    padding: 10px 20px;
+    background: white;
+    border: 1px solid #1890ff;
+    color: #1890ff;
+    border-radius: 30px;
     font-weight: 600;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 100;
+    transition: 0.3s;
 }
 
 .btn-top-left:hover {
-    background-color: #3498db;
+    background: #1890ff;
     color: white;
-    transform: translateX(-5px);
-    box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
 }
 
 /* --- HEADER --- */
 .elections-header {
     text-align: center;
     margin-bottom: 30px;
-    color: #2c3e50;
 }
 
 .elections-header h1 {
-    font-size: 2.8rem;
-    margin-bottom: 10px;
-    font-weight: 800;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1f2d3d;
 }
 
-/* --- FILTER BAR --- */
+.elections-header p {
+    color: #666;
+}
+
+/* --- FILTER --- */
 .filter-bar {
     display: flex;
-    gap: 15px;
-    margin-bottom: 40px;
-    justify-content: center;
+    gap: 12px;
+    margin-bottom: 30px;
 }
 
 .filter-bar button {
-    padding: 10px 25px;
-    border-radius: 25px;
-    border: 1px solid #fff;
-    background: rgba(255, 255, 255, 0.5);
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1px solid #d9d9d9;
+    background: white;
     cursor: pointer;
-    font-weight: 600;
-    transition: 0.3s;
 }
 
 .filter-bar button.active {
-    background: #3498db;
+    background: #1890ff;
     color: white;
-    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+    border: none;
 }
 
-/* --- GRID HỆ THỐNG CỘT --- */
+/* --- GRID --- */
 .election-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 25px;
     width: 100%;
     max-width: 1200px;
 }
 
-/* --- KHUNG CHO CÁC CỘT (CARD) --- */
+/* --- CARD --- */
 .election-card {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 20px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(5px);
-    transition: all 0.4s ease;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e8e8e8;
+    transition: 0.3s;
     display: flex;
     flex-direction: column;
 }
 
 .election-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
-/* Phần hình ảnh card */
-.card-image-container {
-    height: 180px;
-    background: linear-gradient(45deg, #2193b0, #6dd5ed);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.status-tag {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: white;
-    text-transform: uppercase;
-}
-
-.status-tag.ongoing { background: #27ae60; }
-.status-tag.ended { background: #e74c3c; }
-
-/* Thân Card */
-.card-body {
-    padding: 25px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.card-body h3 {
-    font-size: 1.4rem;
-    color: #2c3e50;
-    margin-bottom: 12px;
-}
-
-.election-desc {
-    color: #7f8c8d;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 20px;
-}
-
-/* Chân Card */
-.card-footer {
-    margin-top: auto;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.date-info {
+/* HEADER CARD */
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #34495e;
-    font-size: 0.9rem;
 }
 
-/* NÚT BÌNH CHỌN NỔI BẬT */
+.status-tag {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+}
+
+.status-tag.ongoing {
+    background: #52c41a;
+}
+
+.status-tag.ended {
+    background: #f5222d;
+}
+
+/* BODY */
+.card-body {
+    padding: 20px;
+}
+
+.card-body h3 {
+    margin-bottom: 10px;
+    color: #1f2d3d;
+}
+
+.election-desc {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* FOOTER */
+.card-footer {
+    margin-top: auto;
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+}
+
+.date-info {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
 .vote-btn {
     width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: white;
+    padding: 12px;
+    border-radius: 8px;
     border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    background: #1890ff;
+    color: white;
+    transition: 0.3s;
 }
 
 .vote-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #2980b9, #1c5980);
-    transform: scale(1.02);
+    background: #096dd9;
 }
 
 .vote-btn:disabled {
-    background: #bdc3c7;
-    box-shadow: none;
+    background: #ccc;
     cursor: not-allowed;
 }
 
-/* --- RESPONSIVE --- */
+/* RESPONSIVE */
 @media (max-width: 768px) {
-    .btn-top-left {
-        top: 15px;
-        left: 15px;
-        padding: 8px 16px;
-    }
-
-    .elections-header h1 {
-        font-size: 2rem;
-    }
-
     .election-grid {
         grid-template-columns: 1fr;
     }

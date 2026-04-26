@@ -156,6 +156,7 @@ html, body, #root {
 .overlay-content h1 {
     font-size: 36px;
     margin-bottom: 10px;
+    color: white;
 }
 
 .content-underline {

@@ -29,11 +29,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Hàm login
-  const login = async (username: string, password: string): Promise<void> => {
+  const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await authService.login({ username, password });
+      const response = await authService.login({ email, password });
       
       setUser(response.user);
       setIsAuthenticated(true);

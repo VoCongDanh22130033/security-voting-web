@@ -24,5 +24,4 @@ export const getCandidates = (electionId: number) =>
 export const castVote = (voteData: { electionId: number; candidateId: number }) =>
     api.post('/api/votes/cast', voteData);
 
-// Export mặc định instance để sử dụng ở nơi khác nếu cần
 export default api;

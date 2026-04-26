@@ -27,32 +27,28 @@ class AuthService {
   /**
    * Đăng nhập người dùng
    */
-
-  async login(credentials: { username: string; password: string }): Promise<{ user: User; token: string }> {
+  async login(credentials: { email: string; password: string }): Promise<{ user: User; token: string }> {
     try {
       const response = await this.apiClient.post('/auth/login', credentials);
-
-      // AuthController chỉ trả về { token: "..." }
       const { token } = response.data;
 
-      // Tạo object user tạm thời từ thông tin đăng nhập
+      localStorage.setItem(this.tokenKey, token);
+
+      // Lấy phần tên từ email để hiển thị (Ví dụ: voter2@gmail.com -> voter2)
+      const displayName = credentials.email.split('@')[0];
+
       const user: User = {
-        email: "", fullName: "", id: "", role: "",
-        username: credentials.username
-        // roles: [] // Bạn có thể parse JWT để lấy role nếu cần
+        id: "temp-id",
+        username: displayName, // Gán tên để Header có cái hiển thị
+        email: credentials.email
       };
 
-      // Lưu vào storage
-      localStorage.setItem(this.tokenKey, token);
       localStorage.setItem(this.userKey, JSON.stringify(user));
-
       return { user, token };
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || 'Đăng nhập thất bại';
-      throw new Error(errorMessage);
+      throw new Error(error?.response?.data?.message || 'Đăng nhập thất bại');
     }
   }
-
   /**
    * Đăng ký người dùng mới
    */

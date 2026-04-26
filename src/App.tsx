@@ -15,34 +15,38 @@ import ElectionStatusManager from "./components/electionComponent/ElectionStatus
 import Admin from "./pages/admin/Admin.tsx";
 import UserLayout from "./layouts/UserLayout.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
-
+import { ProfileProvider } from "./context/ProfileContext.tsx";
+import { AuthProvider } from "./context/AuthContext.tsx";
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Login/>}/>
-                <Route path="/register" element={<Register/>}/>
-                <Route path="/forgot-password" element={<ForgotPassword/>}/>
+        <AuthProvider>
+            <ProfileProvider>
+                <BrowserRouter>
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/" element={<Login/>}/>
+                        <Route path="/register" element={<Register/>}/>
+                        <Route path="/forgot-password" element={<ForgotPassword/>}/>
 
-                {/* Protected Routes with Layout */}
-                <Route element={<ProtectedRoute><UserLayout/></ProtectedRoute>}>
-                    <Route path="/home" element={<Home/>}/>
-                    <Route path="/profile" element={<Profile/>}/>
-                    <Route path="/elections" element={<Elections/>}/>
-                    <Route path="/candidates" element={<Candidates/>}/>
-                    <Route path="/results" element={<Results/>}/>
-                    <Route path="/votestatus" element={<VoteStatus/>}/>
-                    <Route path="/host-dashboard" element={<HostDashboard/>}/>
-                    <Route path="/election-timeline" element={<ElectionTimeline/>}/>
-                    <Route path="/create-election" element={<CreateElection/>}/>
-                    <Route path="/election-status-manager" element={<ElectionStatusManager/>}/>
-                    <Route path="/admin" element={<Admin/>}/>
-                </Route>
-            </Routes>
-        </BrowserRouter>
+                        {/* Protected Routes with Layout */}
+                        <Route element={<ProtectedRoute><UserLayout/></ProtectedRoute>}>
+                            <Route path="/home" element={<Home/>}/>
+                            <Route path="/profile" element={<Profile/>}/>
+                            <Route path="/elections" element={<Elections/>}/>
+                            <Route path="/candidates" element={<Candidates/>}/>
+                            <Route path="/results" element={<Results/>}/>
+                            <Route path="/votestatus" element={<VoteStatus/>}/>
+                            <Route path="/host-dashboard" element={<HostDashboard/>}/>
+                            <Route path="/election-timeline" element={<ElectionTimeline/>}/>
+                            <Route path="/create-election" element={<CreateElection/>}/>
+                            <Route path="/election-status-manager" element={<ElectionStatusManager/>}/>
+                            <Route path="/admin" element={<Admin/>}/>
+                        </Route>
+                    </Routes>
+                </BrowserRouter>
+            </ProfileProvider>
+        </AuthProvider>
     );
-
 }
 export default App;

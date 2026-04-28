@@ -1,79 +1,133 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../assets/css/create-election.css";
+import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext.tsx"; // Import useAuth
 
-const CreateElection: React.FC = () => {
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
+interface CandidateInput {
+    name: string;
+    description: string;
+}
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setPreviewImage(URL.createObjectURL(file));
+interface CreateElectionProps {
+    editData?: any;
+    onComplete?: () => void;
+}
+
+const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete }) => {
+    const { user } = useAuth(); // Lấy user hiện tại
+    const [title, setTitle] = useState(editData?.title || "");
+    const [description, setDescription] = useState(editData?.description || "");
+    const [startTime, setStartTime] = useState(editData?.startDate?.substring(0, 16) || "");
+    const [endTime, setEndTime] = useState(editData?.endDate?.substring(0, 16) || "");
+    const [candidates, setCandidates] = useState<CandidateInput[]>([{ name: "", description: "" }]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (editData?.id) {
+            fetchCandidates(editData.id);
+        }
+    }, [editData]);
+
+    const fetchCandidates = async (id: number) => {
+        try {
+            const res = await api.get(`/api/elections/${id}/candidates`);
+            setCandidates(res.data.map((c: any) => ({ name: c.name, description: c.description })));
+        } catch (error) {
+            console.error("Lỗi lấy ứng viên:", error);
+        }
+    };
+
+    const addCandidate = () => setCandidates([...candidates, { name: "", description: "" }]);
+    const removeCandidate = (index: number) => setCandidates(candidates.filter((_, i) => i !== index));
+    const handleCandidateChange = (index: number, field: keyof CandidateInput, value: string) => {
+        const newCandidates = [...candidates];
+        newCandidates[index][field] = value;
+        setCandidates(newCandidates);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        // Gửi kèm hostId để phân quyền
+        const payload = {
+            title,
+            description,
+            startTime,
+            endTime,
+            candidates,
+            hostId: user?.id
+        };
+
+        try {
+            if (editData) {
+                await api.put(`/api/elections/${editData.id}`, payload);
+                alert("Cập nhật thành công!");
+            } else {
+                await api.post("/api/elections/create", payload);
+                alert("Tạo mới thành công!");
+            }
+            if (onComplete) onComplete();
+        } catch (error: any) {
+            alert(error.response?.data?.message || "Lỗi thao tác Database.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
         <div className="create-election-container">
-            <div className="section-header">
-                <h3>Tạo Cuộc Bầu Cử Mới</h3>
-            </div>
-
-            <form className="create-election-form">
+            <h3>{editData ? "Chỉnh sửa cuộc bầu cử" : "Tạo Cuộc Bầu Cử Mới"}</h3>
+            <form className="create-election-form" onSubmit={handleSubmit}>
                 <div className="form-grid">
-                    {/* Cột trái: Thông tin cơ bản */}
                     <div className="form-left">
                         <div className="form-group">
                             <label>Tên cuộc bầu cử</label>
-                            <input type="text" placeholder="Ví dụ: Bầu cử Ban chấp hành nhiệm kỳ 2026-2028" />
+                            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required disabled={isLoading} />
                         </div>
-
                         <div className="form-group">
-                            <label>Mô tả ngắn gọn</label>
-                            <textarea rows={4} placeholder="Nhập nội dung mục đích và quy định của cuộc bầu cử..."></textarea>
+                            <label>Mô tả</label>
+                            <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} disabled={isLoading} />
                         </div>
-
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Loại bầu cử</label>
-                                <select>
-                                    <option>Công khai</option>
-                                    <option>Nội bộ (Cần mã mời)</option>
-                                    <option>Bí mật</option>
-                                </select>
+                                <label>Bắt đầu</label>
+                                <input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} required disabled={isLoading} />
                             </div>
                             <div className="form-group">
-                                <label>Số lượng ứng viên tối đa</label>
-                                <input type="number" defaultValue={10} />
+                                <label>Kết thúc</label>
+                                <input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} required disabled={isLoading} />
                             </div>
                         </div>
                     </div>
-
-                    {/* Cột phải: Hình ảnh đại diện */}
                     <div className="form-right">
-                        <label>Hình ảnh đại diện (Banner)</label>
-                        <div className="image-upload-box" onClick={() => document.getElementById('fileInput')?.click()}>
-                            {previewImage ? (
-                                <img src={previewImage} alt="Preview" className="preview-img" />
-                            ) : (
-                                <div className="upload-placeholder">
-                                    <span>📸</span>
-                                    <p>Nhấn để tải ảnh lên</p>
-                                </div>
-                            )}
-                            <input
-                                type="file"
-                                id="fileInput"
-                                hidden
-                                accept="image/*"
-                                onChange={handleImageChange}
-                            />
+                        <label>Hình ảnh đại diện</label>
+                        <div className="image-upload-box" style={{ height: '150px', border: '2px dashed #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <p>📸 Tải banner</p>
                         </div>
-                        <p className="help-text">Định dạng hỗ trợ: JPG, PNG. Dung lượng tối đa 2MB.</p>
                     </div>
                 </div>
 
-                <div className="form-actions">
-                    <button type="button" className="btn-cancel">Hủy bỏ</button>
-                    <button type="submit" className="btn-submit">Khởi tạo cuộc bầu cử</button>
+                <hr />
+                <div className="candidates-management">
+                    <h4>Danh sách ứng viên</h4>
+                    {candidates.map((cand, index) => (
+                        <div key={index} className="candidate-row" style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                            <input type="text" placeholder="Tên" value={cand.name} onChange={(e) => handleCandidateChange(index, "name", e.target.value)} required disabled={isLoading} />
+                            <input type="text" placeholder="Mô tả" value={cand.description} onChange={(e) => handleCandidateChange(index, "description", e.target.value)} disabled={isLoading} />
+                            {candidates.length > 1 && (
+                                <button type="button" onClick={() => removeCandidate(index)} style={{background: 'red', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer'}}>Xóa</button>
+                            )}
+                        </div>
+                    ))}
+                    <button type="button" className="btn-add-candidate" onClick={addCandidate} disabled={isLoading}>+ Thêm ứng viên</button>
+                </div>
+
+                <div className="form-actions" style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
+                    <button type="button" onClick={onComplete} className="btn-cancel">Hủy bỏ</button>
+                    <button type="submit" className="btn-submit" disabled={isLoading}>
+                        {isLoading ? "Đang xử lý..." : (editData ? "Cập nhật Database" : "Khởi tạo & Lưu Database")}
+                    </button>
                 </div>
             </form>
         </div>

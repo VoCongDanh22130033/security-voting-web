@@ -63,8 +63,11 @@ const Candidates = () => {
           confirmButtonText: "OK"
         });
 
+        // Trong file Candidates.tsx, phần catch của handleVote
       } catch (e: any) {
-        Swal.fire("Lỗi", "Không thể bỏ phiếu", "error");
+        // Lấy message lỗi từ backend (ví dụ: "Bạn đã bỏ phiếu cho cuộc bầu cử này rồi!")
+        const errorMsg = e.response?.data || "Không thể bỏ phiếu";
+        Swal.fire("Lỗi", errorMsg, "error");
       } finally {
         setIsSubmitting(false);
       }

@@ -1,87 +1,89 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import type { AuthContextType, User } from "../types/auth";
+import type { User } from "../types/auth";
 import authService from "../services/authService";
 
-// Tạo Auth Context
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  clearError: () => void;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Provider Component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Kiểm tra authentication khi component mount
   useEffect(() => {
-    const checkAuth = () => {
-      const token = authService.getToken();
-      const currentUser = authService.getCurrentUser();
-      
-      if (token && currentUser) {
-        setUser(currentUser);
-        setIsAuthenticated(true);
+    const initAuth = () => {
+      const token = localStorage.getItem("token");
+      const savedUser = localStorage.getItem("user");
+      if (token && savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+          setIsAuthenticated(true);
+        } catch (e) {
+          localStorage.clear();
+        }
       }
       setIsLoading(false);
     };
-
-    checkAuth();
+    initAuth();
   }, []);
 
-  // Hàm login
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await authService.login({ email, password });
-      
-      setUser(response.user);
+
+      // Khởi tạo object user từ response phẳng của Backend
+      const userData: User = {
+        id: response.id,
+        username: response.username,
+        email: response.email,
+        roles: response.roles
+      };
+
+      // Lưu trữ để sử dụng khi reload trang
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      setUser(userData);
       setIsAuthenticated(true);
-      setError(null);
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message || err?.message || "Đăng nhập thất bại";
       setError(errorMessage);
-      setIsAuthenticated(false);
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Hàm logout
-  const logout = (): void => {
-    authService.logout();
+  const logout = () => {
+    localStorage.clear();
     setUser(null);
     setIsAuthenticated(false);
-    setError(null);
   };
 
-  // Hàm xóa lỗi
-  const clearError = (): void => {
-    setError(null);
-  };
+  const clearError = () => setError(null);
 
-  const value: AuthContextType = {
-    user,
-    isAuthenticated,
-    isLoading,
-    error,
-    login,
-    logout,
-    clearError,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+      <AuthContext.Provider value={{ user, isAuthenticated, isLoading, error, login, logout, clearError }}>
+        {children}
+      </AuthContext.Provider>
+  );
 };
 
-// Custom Hook để sử dụng Auth Context
-export const useAuth = (): AuthContextType => {
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };
-
-export default AuthContext;
-

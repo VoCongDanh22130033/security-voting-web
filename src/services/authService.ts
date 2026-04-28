@@ -8,7 +8,7 @@ class AuthService {
 
   constructor() {
     this.apiClient = axios.create({
-      baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+      baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -44,7 +44,8 @@ class AuthService {
       };
 
       localStorage.setItem(this.userKey, JSON.stringify(user));
-      return { user, token };
+      // return { user, token };
+      return response.data;
     } catch (error: any) {
       throw new Error(error?.response?.data?.message || 'Đăng nhập thất bại');
     }
@@ -145,12 +146,12 @@ class AuthService {
 
   async getProfile(): Promise<any> {
     try {
-      // Đường dẫn qua Gateway: http://localhost:8080/voter/profile
+      // Đảm bảo không dư thừa dấu gạch chéo hoặc tiền tố lạ
       const response = await this.apiClient.get('/voter/profile');
       return response.data;
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || 'Không thể tải thông tin profile';
-      throw new Error(errorMessage);
+      console.error("Profile API Error:", error.response); // Thêm log này để debug nếu vẫn trống
+      throw error;
     }
   }
 }

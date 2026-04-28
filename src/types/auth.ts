@@ -5,19 +5,19 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface LoginResponse {
-  success: boolean;
-  message: string;
-  token: string;
-  user: User;
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  roles: string[];
 }
 
-export interface User {
-  id: string;
+export interface LoginResponse {
+  token: string;
+  id: number;
   username: string;
-  email?: string;
-  role?: string;
-  fullName?: string;
+  email: string;
+  roles: string[];
 }
 
 export interface AuthContextType {
@@ -25,11 +25,10 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
 }
-
 export interface RegisterRequest {
   username: string;
   email: string;

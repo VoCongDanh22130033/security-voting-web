@@ -14,19 +14,23 @@ const Login: React.FC = () => {
     e.preventDefault();
     setLocalError("");
 
-    if (!email.trim() || !password.trim()) {
-      setLocalError("Vui lòng nhập email và mật khẩu");
-      return;
-    }
-
     try {
+      // 1. Thực hiện đăng nhập
       await login(email, password);
-      navigate("/home");
+
+      // 2. Lấy thông tin user vừa được lưu vào localStorage
+      const savedUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+      // 3. Kiểm tra quyền ROLE_ORGANIZER trong mảng roles
+      if (savedUser.roles && savedUser.roles.includes("ROLE_ORGANIZER")) {
+        navigate("/host-dashboard");
+      } else {
+        navigate("/home");
+      }
     } catch (err: any) {
       setLocalError(err?.message || "Thông tin đăng nhập không chính xác");
     }
   };
-
   return (
       <div className="login-container">
         <div className="login-box">

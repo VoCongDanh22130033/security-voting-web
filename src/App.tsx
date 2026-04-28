@@ -4,12 +4,8 @@ import Home from "./pages/Home.tsx";
 import Register from "./pages/Register.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import Profile from "./pages/Profile.tsx";
-import Elections from "./pages/Elections.tsx";
-import Candidates from "./pages/Candidates.tsx";
-import Results from "./pages/Results.tsx";
 import VoteStatus from "./pages/VoteStatus.tsx";
 import HostDashboard from "./pages/hostDashboard/HostDashboard.tsx";
-import ElectionTimeline from "./components/electionComponent/ElectionTimeline.tsx";
 import CreateElection from "./components/electionComponent/CreateElection.tsx";
 import ElectionStatusManager from "./components/electionComponent/ElectionStatusManager.tsx";
 import Admin from "./pages/admin/Admin.tsx";
@@ -17,7 +13,7 @@ import UserLayout from "./layouts/UserLayout.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import { ProfileProvider } from "./context/ProfileContext.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
-
+import Elections from "./pages/Elections.tsx";
 function App() {
     return (
         <AuthProvider>
@@ -29,18 +25,25 @@ function App() {
                         <Route path="/register" element={<Register/>}/>
                         <Route path="/forgot-password" element={<ForgotPassword/>}/>
 
-                        {/* Protected Routes with Layout */}
+                        {/* 1. Nhóm Route chung cho tất cả người dùng đã đăng nhập */}
                         <Route element={<ProtectedRoute><UserLayout/></ProtectedRoute>}>
                             <Route path="/home" element={<Home/>}/>
                             <Route path="/profile" element={<Profile/>}/>
-                            <Route path="/elections" element={<Elections/>}/>
-                            <Route path="/candidates" element={<Candidates/>}/>
-                            <Route path="/results" element={<Results/>}/>
                             <Route path="/votestatus" element={<VoteStatus/>}/>
+                            <Route path="/elections" element={<Elections/>}/>
+
+                        </Route>
+
+                        {/* 2. Nhóm Route CHỈ dành cho ROLE_ORGANIZER */}
+                        <Route element={
+                            <ProtectedRoute requiredRole="ROLE_ORGANIZER">
+                                <UserLayout/>
+                            </ProtectedRoute>
+                        }>
                             <Route path="/host-dashboard" element={<HostDashboard/>}/>
-                            <Route path="/election-timeline" element={<ElectionTimeline/>}/>
                             <Route path="/create-election" element={<CreateElection/>}/>
                             <Route path="/election-status-manager" element={<ElectionStatusManager/>}/>
+                            {/* Bạn có thể thêm trang Admin tổng vào đây nếu cần */}
                             <Route path="/admin" element={<Admin/>}/>
                         </Route>
                     </Routes>

@@ -23,5 +23,8 @@ export const getCandidates = (electionId: number) =>
 // Hàm bỏ phiếu sử dụng instance api đã cấu hình
 export const castVote = (voteData: { electionId: number; candidateId: number }) =>
     api.post('/api/votes/cast', voteData);
+// Sửa đổi file api.ts
 
+export const updateElection = (id: number, data: any) => api.put(`/api/elections/${id}`, data);
+export const deleteElection = (id: number) => api.delete(`/api/elections/${id}`);
 export default api;

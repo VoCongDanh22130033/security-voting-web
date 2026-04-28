@@ -32,13 +32,17 @@ const Profile: React.FC = () => {
                 <div className="profile-card">
                     <div className="profile-header">
                         <div className="avatar-circle">
-                            {/* Ưu tiên hiển thị chữ cái đầu của full_name, nếu không có thì dùng username */}
-                            {(profile.full_name || profile.username || "U").charAt(0).toUpperCase()}
+                            {/* Truy cập vào profile.user.username hoặc profile.fullName */}
+                            {(profile.fullName || profile.user?.username || "U").charAt(0).toUpperCase()}
                         </div>
                         <div className="user-intro">
-                            <h2>{profile.full_name || profile.username}</h2>
-                            <p className="role-badge">{profile.role || "Voter"}</p>
+                            <h2>{profile.fullName || profile.user?.username}</h2>
+                            {/* Lấy Role từ mảng roles của object user */}
+                            <p className="role-badge">
+                                {profile.user?.roles?.[0]?.name?.replace("ROLE_", "") || "Voter"}
+                            </p>
                         </div>
+
                     </div>
 
                     <div className="profile-content">
@@ -47,32 +51,34 @@ const Profile: React.FC = () => {
                             <div className="info-grid">
                                 <div className="info-item">
                                     <label>Họ và tên</label>
-                                    <p>{profile.full_name || "Chưa cập nhật"}</p>
+                                    <p>{profile.fullName || "Chưa cập nhật"}</p>
                                 </div>
                                 <div className="info-item">
                                     <label>Email liên lạc</label>
-                                    <p>{profile.email}</p>
+                                    {/* Email nằm bên trong object user */}
+                                    <p>{profile.user?.email || "N/A"}</p>
                                 </div>
                                 <div className="info-item">
                                     <label>Tên đăng nhập</label>
-                                    <p>{profile.username}</p>
+                                    <p>{profile.user?.username || "N/A"}</p>
                                 </div>
                                 <div className="info-item">
                                     <label>Số điện thoại</label>
-                                    <p>{profile.phone || "Chưa cập nhật"}</p>
+                                    <p>{profile.user?.phone || "Chưa cập nhật"}</p>
                                 </div>
                                 <div className="info-item">
                                     <label>Số CCCD/ID</label>
-                                    <p>{profile.id_card || "Chưa cập nhật"}</p>
+                                    <p>{profile.citizenId || "Chưa cập nhật"}</p>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="action-section">
-                            <button className="edit-btn">Chỉnh sửa hồ sơ</button>
-                            <button className="logout-btn" onClick={logout}>Đăng xuất</button>
+                            <div className="action-section">
+                                <button className="edit-btn">Chỉnh sửa hồ sơ</button>
+                                <button className="logout-btn" onClick={logout}>Đăng xuất</button>
+                            </div>
                         </div>
                     </div>
+
+
                 </div>
             </main>
         </div>

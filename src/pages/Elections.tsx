@@ -7,20 +7,27 @@ import "../assets/css/elections.css";
 const Elections = () => {
   const [elections, setElections] = useState<any[]>([]);
   const [filter, setFilter] = useState("ALL");
+  const [loading, setLoading] = useState(true); // Thêm trạng thái loading
   const navigate = useNavigate();
 
   useEffect(() => {
-    getElections().then(res => setElections(res.data));
+    setLoading(true);
+    getElections()
+    .then((res) => {
+      console.log(">>> [FE] Dữ liệu Election nhận được:", res.data);
+      setElections(res.data);
+    })
+    .catch((err) => console.error("Lỗi tải danh sách bầu cử:", err))
+    .finally(() => setLoading(false));
   }, []);
 
-  const filteredElections = elections.filter(e => {
+  const filteredElections = elections.filter((e) => {
     if (filter === "ALL") return true;
     return e.status === filter;
   });
 
   return (
       <div className="elections-container">
-
         {/* HEADER */}
         <header className="elections-header">
           <motion.h1
@@ -62,52 +69,66 @@ const Elections = () => {
         </div>
 
         {/* GRID */}
-        <div className="election-grid">
-          {filteredElections.map((election, index) => (
-              <motion.div
-                  key={election.id}
-                  className="election-card"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-              >
+        {loading ? (
+            <div className="loading-spinner">Đang tải danh sách bầu cử...</div>
+        ) : (
+            <div className="election-grid">
+              {filteredElections.length > 0 ? (
+                  filteredElections.map((election, index) => (
+                      <motion.div
+                          key={election.id}
+                          className="election-card"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                      >
+                        {/* IMAGE - SỬA LẠI ĐỂ HIỆN ẢNH TỪ CLOUDINARY */}
+                        <div className="card-image">
+                          <img
+                              src={
+                                  election.image || // Trình duyệt sẽ tìm thuộc tính 'image' trả về từ Backend
+                                  "https://res.cloudinary.com/demo/image/upload/v1631234567/sample.jpg" // Ảnh mặc định nếu null
+                              }
+                              alt={election.title}
+                              onError={(e) => {
+                                // Xử lý nếu link ảnh Cloudinary bị lỗi hoặc die
+                                (e.target as HTMLImageElement).src = "/images/default-election.jpg";
+                              }}
+                          />
 
-                {/* IMAGE */}
-                <div className="card-image">
-                  <img
-                      src={election.image || "/images/default-election.jpg"}
-                      alt={election.title}
-                  />
+                          <div className={`status-badge ${election.status?.toLowerCase()}`}>
+                            {election.status === "OPEN" ? "Active" : "Ended"}
+                          </div>
+                        </div>
 
-                  <div className="status-badge">
-                    {election.status === "OPEN" ? "Active" : "Ended"}
-                  </div>
-                </div>
+                        {/* BODY */}
+                        <div className="card-body">
+                          <h3>{election.title}</h3>
+                          <p className="description-text">
+                            {election.description ||
+                                "Cuộc bầu cử dân chủ ứng dụng công nghệ bảo mật hiện đại."}
+                          </p>
+                          <div className="date-info">
+                            <span>Bắt đầu: {new Date(election.startDate).toLocaleDateString("vi-VN")}</span>
+                          </div>
+                        </div>
 
-                {/* BODY */}
-                <div className="card-body">
-                  <h3>{election.title}</h3>
-                  <p>
-                    {election.description ||
-                        "Cuộc bầu cử dân chủ ứng dụng công nghệ bảo mật hiện đại."}
-                  </p>
-                </div>
-
-                {/* FOOTER */}
-                <div className="card-footer">
-                  <button
-                      className="action-btn"
-                      onClick={() =>
-                          navigate(`/candidates?electionId=${election.id}`)
-                      }
-                  >
-                    Tham gia
-                  </button>
-                </div>
-
-              </motion.div>
-          ))}
-        </div>
+                        {/* FOOTER */}
+                        <div className="card-footer">
+                          <button
+                              className="action-btn"
+                              onClick={() => navigate(`/candidates?electionId=${election.id}`)}
+                          >
+                            Tham gia
+                          </button>
+                        </div>
+                      </motion.div>
+                  ))
+              ) : (
+                  <div className="no-data">Không có cuộc bầu cử nào được tìm thấy.</div>
+              )}
+            </div>
+        )}
       </div>
   );
 };

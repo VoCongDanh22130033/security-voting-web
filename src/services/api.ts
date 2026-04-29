@@ -36,4 +36,31 @@ export const castVote = (voteData: {
 export const getBlindSignature = (data: { electionId: number; blindedMessage: string }) => {
   return api.post('/api/crypto/sign', data);
 };
+
+export const uploadImage = (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return api.post("/api/elections/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+
+
+export const createElection = (electionData: any, file: File) => {
+  const formData = new FormData();
+
+  // Chuyển object election thành Blob JSON
+  formData.append("election", new Blob([JSON.stringify(electionData)], { type: "application/json" }));
+  formData.append("file", file);
+
+  return api.post("/api/elections/create", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+
+
+
+
 export default api;

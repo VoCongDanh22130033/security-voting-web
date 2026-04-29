@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { getCandidates, castVote, getBlindSignature } from "../services/api"; //[cite: 15, 16]
 import Swal from "sweetalert2";
 import "../assets/css/candidates.css";
-import {cite} from "framer-motion/m";
+
 
 const Candidates = () => {
   const [searchParams] = useSearchParams();

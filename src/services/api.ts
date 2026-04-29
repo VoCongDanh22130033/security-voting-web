@@ -30,7 +30,7 @@ export const deleteElection = (id: number) => api.delete(`/api/elections/${id}`)
 export const castVote = (voteData: {
   electionId: number;
   candidateId: number;
-  encryptedVote: string;
+  blindedContent: string;
   signature: string;
 }) => api.post('/api/votes/cast', voteData);
 export const getBlindSignature = (data: { electionId: number; blindedMessage: string }) => {

@@ -5,7 +5,7 @@ import "../assets/css/profile.css";
 
 const Profile: React.FC = () => {
     const { logout } = useAuth();
-    const { profile, loading, refreshProfile } = useProfile();
+    const { profile, loading } = useProfile();
 
     const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">("info");
 

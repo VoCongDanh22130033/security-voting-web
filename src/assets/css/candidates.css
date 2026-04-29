@@ -1,116 +1,193 @@
-/* --- BACKGROUND STRIPE STYLE --- */
+/* --- CONTAINER --- */
+/* --- BACKGROUND & CONTAINER --- */
 .candidates-container {
     min-height: 100vh;
     padding: 100px 20px;
 
-    /* đổi sang tone cam */
-    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-    position: relative;
-    overflow: hidden;
+    /* CẢI TIẾN: Làm nhạt màu cam bằng cách tăng độ trắng và giảm opacity của lớp phủ */
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.9),  /* Lớp trắng trên cùng (0.9 là rất nhạt) */
+        rgba(255, 248, 235, 0.85)  /* Lớp cam sữa cực nhẹ */
+    ),
+    url('https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?q=80&w=2070&auto=format&fit=crop');
 
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
 }
 
-/* blur glow */
 .candidates-container::before {
     content: "";
     position: absolute;
-    width: 500px;
-    height: 500px;
-    top: -150px;
-    right: -150px;
-    background: radial-gradient(circle, rgba(255,140,0,0.25), transparent);
-    filter: blur(100px);
+    width: 600px;
+    height: 600px;
+    top: -200px;
+    right: -100px;
+    /* Giảm từ 0.15 xuống 0.05 để đốm sáng mờ ảo hơn */
+    background: radial-gradient(circle, rgba(255, 122, 0, 0.05), transparent);
+    filter: blur(120px);
+    z-index: 0;
 }
 
-.candidates-container::after {
-    content: "";
-    position: absolute;
-    width: 500px;
-    height: 500px;
-    bottom: -150px;
-    left: -150px;
-    background: radial-gradient(circle, rgba(255,180,80,0.25), transparent);
-    filter: blur(100px);
-}
-
-/* --- BACK BUTTON --- */
+/* --- NÚT QUAY LẠI --- */
 .btn-back {
     position: absolute;
-    top: 25px;
-    left: 25px;
-    padding: 10px 20px;
+    top: 30px;
+    left: 30px;
+    padding: 10px 24px;
     border-radius: 30px;
-    background: rgba(255,255,255,0.6);
+    background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid #ff7a00;
+    color: #ff7a00;
+    font-weight: 700;
     cursor: pointer;
-    font-weight: 600;
+    z-index: 10;
+    transition: 0.3s;
 }
 
-/* --- HEADER --- */
-.election-info {
-    text-align: center;
-    margin-bottom: 60px;
+.btn-back:hover {
+    background: #ff7a00;
+    color: white;
 }
 
 /* --- GRID --- */
 .candidates-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 45px;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1300px;
+    padding: 20px 0;
 }
 
-/* --- CARD GLASS --- */
+/* --- CANDIDATE CARD --- */
 .candidate-card {
-    background: rgba(255,255,255,0.65);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 30px;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border-radius: 28px;
+    padding: 40px 30px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Tạo khoảng cách dọc giữa các phần tử chính */
+    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 
-    border: 1px solid rgba(255,255,255,0.3);
-
-    box-shadow: 0 8px 32px rgba(255,140,0,0.15);
-
-    text-align: center;
+.candidate-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.65);
+    border-color: #ff7a00;
 }
 
 /* --- AVATAR --- */
+.candidate-avatar {
+    width: 140px;
+    height: 140px;
+    flex-shrink: 0;
+}
+
 .candidate-avatar img {
-    width: 110px;
-    height: 110px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    margin-bottom: 15px;
+    border: 5px solid white;
+    object-fit: cover;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* --- DETAILS --- */
+.candidate-details {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.info-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    text-align: left;
+}
+
+.info-label {
+    font-weight: 700;
+    color: #444;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.info-value {
+    margin: 0 !important;
+    color: #1f2d3d;
+}
+
+h3.info-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.candidate-desc {
+    font-size: 1rem;
+    color: #666;
+    line-height: 1.4;
 }
 
 /* --- PROGRESS BAR --- */
-.vote-progress {
-    height: 8px;
-    background: #ffe0b2;
-    border-radius: 10px;
+.vote-stats {
+    width: 100%;
+}
+
+.vote-progress-container {
+    height: 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
     overflow: hidden;
-    margin: 10px 0 15px;
+    margin-bottom: 8px;
 }
 
 .vote-progress-bar {
     height: 100%;
     background: linear-gradient(90deg, #ff9800, #ff5722);
-    width: 0%;
-    transition: width 0.6s ease;
 }
 
-/* --- BUTTON --- */
+.vote-info {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #555;
+    text-align: center;
+}
+
+/* --- NÚT BẤM --- */
 .btn-vote-now {
     width: 100%;
-    padding: 12px;
-    border-radius: 10px;
+    padding: 15px;
+    border-radius: 14px;
     border: none;
     background: linear-gradient(135deg, #ff9800, #ff5722);
     color: white;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.05rem;
     cursor: pointer;
+    box-shadow: 0 6px 15px rgba(255, 87, 34, 0.3);
+    transition: 0.3s;
+}
+
+.btn-vote-now:hover:not(:disabled) {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+}
+
+.btn-vote-now:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
 }

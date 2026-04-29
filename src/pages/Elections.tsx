@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getElections } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import "../assets/css/elections.css";
 
 const Elections = () => {
@@ -14,79 +15,97 @@ const Elections = () => {
 
   const filteredElections = elections.filter(e => {
     if (filter === "ALL") return true;
-    if (filter === "OPEN") return e.status === "OPEN";
-    if (filter === "ENDED") return e.status !== "OPEN";
-    return true;
+    return e.status === filter;
   });
 
   return (
       <div className="elections-container">
-        <button className="btn-top-left" onClick={() => navigate("/")}>
-          ← Trang chủ
-        </button>
 
+        {/* HEADER */}
         <header className="elections-header">
-          <h1>Danh sách cuộc bầu cử</h1>
-          <p>Lựa chọn cuộc bầu cử để tham gia hoặc xem kết quả</p>
+          <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1 }}
+          >
+            E-Voting
+          </motion.h1>
+
+          <div className="header-line" />
+
+          <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+          >
+            The art of collective decision
+          </motion.p>
         </header>
 
-        <div className="filter-bar">
-          <button
-              className={filter === "ALL" ? "active" : ""}
-              onClick={() => setFilter("ALL")}
-          >
-            Tất cả
-          </button>
-          <button
-              className={filter === "OPEN" ? "active" : ""}
-              onClick={() => setFilter("OPEN")}
-          >
-            Đang diễn ra
-          </button>
-          <button
-              className={filter === "ENDED" ? "active" : ""}
-              onClick={() => setFilter("ENDED")}
-          >
-            Đã kết thúc
-          </button>
+        {/* FILTER */}
+        <div className="filter-wrapper">
+          <div className="filter-bar">
+            {["ALL", "OPEN", "ENDED"].map((status) => (
+                <button
+                    key={status}
+                    className={filter === status ? "active" : ""}
+                    onClick={() => setFilter(status)}
+                >
+                  {status === "ALL"
+                      ? "Archive"
+                      : status === "OPEN"
+                          ? "Ongoing"
+                          : "Completed"}
+                </button>
+            ))}
+          </div>
         </div>
 
+        {/* GRID */}
         <div className="election-grid">
-          {filteredElections.map((election) => (
-              <div key={election.id} className="election-card">
+          {filteredElections.map((election, index) => (
+              <motion.div
+                  key={election.id}
+                  className="election-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+              >
 
-                <div className="card-header">
-                  <strong>Mã: #{election.id}</strong>
-                  <span className={`status-tag ${election.status === "OPEN" ? "ongoing" : "ended"}`}>
-                                {election.status === "OPEN" ? "Đang diễn ra" : "Đã kết thúc"}
-                            </span>
+                {/* IMAGE */}
+                <div className="card-image">
+                  <img
+                      src={election.image || "/images/default-election.jpg"}
+                      alt={election.title}
+                  />
+
+                  <div className="status-badge">
+                    {election.status === "OPEN" ? "Active" : "Ended"}
+                  </div>
                 </div>
 
+                {/* BODY */}
                 <div className="card-body">
                   <h3>{election.title}</h3>
-                  <p className="election-desc">
-                    {election.description || "Cuộc bầu cử nhằm lựa chọn đại diện phù hợp nhất."}
+                  <p>
+                    {election.description ||
+                        "Cuộc bầu cử dân chủ ứng dụng công nghệ bảo mật hiện đại."}
                   </p>
                 </div>
 
+                {/* FOOTER */}
                 <div className="card-footer">
-                  <div className="date-info">
-                    <div>Bắt đầu: {election.startDate || "01/01/2026"}</div>
-                    <div>Kết thúc: {election.endDate || "31/12/2026"}</div>
-                  </div>
-
                   <button
-                      className="vote-btn"
-                      disabled={election.status !== "OPEN"}
-                      onClick={() => navigate(`/candidates?electionId=${election.id}`)}
+                      className="action-btn"
+                      onClick={() =>
+                          navigate(`/candidates?electionId=${election.id}`)
+                      }
                   >
-                    {election.status === "OPEN"
-                        ? "Tham gia bỏ phiếu"
-                        : "Xem kết quả"}
+                    Tham gia
                   </button>
                 </div>
 
-              </div>
+              </motion.div>
           ))}
         </div>
       </div>

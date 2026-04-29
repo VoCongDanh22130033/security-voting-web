@@ -5,7 +5,7 @@ import ElectionStatusManager from "../../components/electionComponent/ElectionSt
 import "../../assets/css/host-dashboard.css";
 import { deleteElection, getElections } from "../../services/api";
 import { useAuth } from "../../context/AuthContext.tsx";
-
+import { useNavigate } from "react-router-dom";
 const HostDashboard: React.FC = () => {
   const { user } = useAuth(); // Lấy thông tin user hiện tại từ Context
   const [activeTab, setActiveTab] = useState<"elections" | "voters">("elections");
@@ -13,7 +13,11 @@ const HostDashboard: React.FC = () => {
   const [elections, setElections] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [editingElection, setEditingElection] = useState<any | null>(null);
-
+  const navigate = useNavigate();
+  const handleViewElection = (id: number) => {
+    // Điều hướng sang trang chi tiết
+    navigate(`/election-detail/${id}`);
+  };
   useEffect(() => {
     if (activeTab === "elections" && subView === "list") {
       fetchElections();
@@ -53,7 +57,7 @@ const HostDashboard: React.FC = () => {
       <div className="host-container">
         <main className="host-main">
           <div className="host-sidebar">
-            <h2>Admin Panel</h2>
+            <h2>Quản Lý</h2>
             <ul>
               <li className={activeTab === "elections" ? "active" : ""} onClick={() => { setActiveTab("elections"); setSubView("list"); }}>
                 📊 Quản lý Bầu cử
@@ -88,33 +92,36 @@ const HostDashboard: React.FC = () => {
                                 <th>Hành động</th>
                               </tr>
                               </thead>
+                              {/* HostDashboard.tsx */}
+
                               <tbody>
-                              {elections.length > 0 ? (
-                                  elections.map((election) => (
-                                      <tr key={election.id}>
-                                        <td>#{election.id}</td>
-                                        <td>{election.title}</td>
-                                        <td>
-                                <span className={`badge ${election.status === 'OPEN' ? 'status-on' : 'status-off'}`}>
-                                  {election.status}
-                                </span>
-                                        </td>
-                                        <td>
-                                          {/* Kiểm tra: Chỉ người tạo (hostId) mới thấy nút Sửa/Xóa */}
-                                          {user?.id === election.hostId ? (
-                                              <>
-                                                <button className="btn-edit" onClick={() => handleEditClick(election)}>Sửa</button>
-                                                <button className="btn-delete" onClick={() => handleDelete(election.id)}>Xóa</button>
-                                              </>
-                                          ) : (
-                                              <span style={{fontSize: '12px', color: '#888'}}>Không có quyền</span>
-                                          )}
-                                        </td>
-                                      </tr>
-                                  ))
-                              ) : (
-                                  <tr><td colSpan={4} style={{ textAlign: 'center' }}>Không có cuộc bầu cử nào</td></tr>
-                              )}
+                              {elections.map((election, index) => (
+                                  <tr key={election.id}>
+                                    <td>{index + 1}</td>
+                                    <td>{election.title}</td>
+                                    <td>{election.status}</td>
+                                    <td>
+                                      {/* Nút Xem: Hiển thị cho tất cả Organizer (roleId === 2) */}
+                                      {election.roleId === 2 && (
+                                          <button
+                                              className="btn-view"
+                                              style={{ backgroundColor: '#2196F3', color: 'white', marginRight: '5px', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                              onClick={() => handleViewElection(election.id)}
+                                          >
+                                            Xem
+                                          </button>
+                                      )}
+
+                                      {/* Nút Sửa & Xóa: Giữ nguyên logic cũ của bạn */}
+                                      {election.roleId === 2 && user?.roles?.includes("ROLE_ORGANIZER") && (
+                                          <>
+                                            <button className="btn-edit" onClick={() => handleEditClick(election)}>Sửa</button>
+                                            <button className="btn-delete" onClick={() => handleDelete(election.id)}>Xóa</button>
+                                          </>
+                                      )}
+                                    </td>
+                                  </tr>
+                              ))}
                               </tbody>
                             </table>
                         )}

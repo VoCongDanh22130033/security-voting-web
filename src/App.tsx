@@ -14,6 +14,9 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import { ProfileProvider } from "./context/ProfileContext.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import Elections from "./pages/Elections.tsx";
+import ElectionDetail from "./components/electionComponent/ElectionDetail.tsx";
+import Candidates from "./pages/Candidates.tsx";
+import Results from "./pages/Results.tsx";
 function App() {
     return (
         <AuthProvider>
@@ -31,7 +34,9 @@ function App() {
                             <Route path="/profile" element={<Profile/>}/>
                             <Route path="/votestatus" element={<VoteStatus/>}/>
                             <Route path="/elections" element={<Elections/>}/>
-
+                            <Route path="/election-detail/:id" element={<ElectionDetail />} />
+                            <Route path="/candidates" element={<Candidates />} />
+                            <Route path="/results" element={<Results />} />
                         </Route>
 
                         {/* 2. Nhóm Route CHỈ dành cho ROLE_ORGANIZER */}
@@ -43,9 +48,18 @@ function App() {
                             <Route path="/host-dashboard" element={<HostDashboard/>}/>
                             <Route path="/create-election" element={<CreateElection/>}/>
                             <Route path="/election-status-manager" element={<ElectionStatusManager/>}/>
-                            {/* Bạn có thể thêm trang Admin tổng vào đây nếu cần */}
+                        </Route>
+
+                        <Route element={
+                            <ProtectedRoute requiredRole="ROLE_ADMIN">
+                                <UserLayout/>
+                            </ProtectedRoute>
+                        }>
                             <Route path="/admin" element={<Admin/>}/>
                         </Route>
+
+
+
                     </Routes>
                 </BrowserRouter>
             </ProfileProvider>

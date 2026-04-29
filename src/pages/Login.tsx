@@ -24,7 +24,13 @@ const Login: React.FC = () => {
       // 3. Kiểm tra quyền ROLE_ORGANIZER trong mảng roles
       if (savedUser.roles && savedUser.roles.includes("ROLE_ORGANIZER")) {
         navigate("/host-dashboard");
-      } else {
+      } else if (
+          savedUser.roles &&
+          savedUser.roles.includes("ROLE_ADMIN")
+      ) {
+        navigate("/admin");
+      }
+      else  {
         navigate("/home");
       }
     } catch (err: any) {

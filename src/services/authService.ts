@@ -27,7 +27,13 @@ class AuthService {
   /**
    * Đăng nhập người dùng
    */
-  async login(credentials: { email: string; password: string }): Promise<{ user: User; token: string }> {
+  async login(credentials: { email: string; password: string }): Promise<{
+    image_url: string;
+    roles: string[];
+    email: string;
+    username: string;
+    id: number;
+    user: User; token: string }> {
     try {
       const response = await this.apiClient.post('/auth/login', credentials);
       const { token } = response.data;

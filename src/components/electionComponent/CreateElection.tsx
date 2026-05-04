@@ -153,21 +153,44 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
                 <div className="candidates-management">
                     <h4>Danh sách ứng viên</h4>
                     {candidates.map((cand, index) => (
-                        <div key={index} className="candidate-row" style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                            <input type="text" placeholder="Tên ứng viên" value={cand.name} onChange={(e) => handleCandidateChange(index, "name", e.target.value)} required disabled={isLoading} />
-                            <input type="text" placeholder="Mô tả" value={cand.description} onChange={(e) => handleCandidateChange(index, "description", e.target.value)} disabled={isLoading} />
+                        <div key={index} className="candidate-row">
+                            <input
+                                type="text"
+                                className="candidate-input"
+                                placeholder="Họ và tên ứng viên..."
+                                value={cand.name}
+                                onChange={(e) => handleCandidateChange(index, "name", e.target.value)}
+                                required
+                                disabled={isLoading}
+                            />
+                            <input
+                                type="text"
+                                className="candidate-input"
+                                placeholder="Mô tả kinh nghiệm, chức vụ..."
+                                value={cand.description}
+                                onChange={(e) => handleCandidateChange(index, "description", e.target.value)}
+                                disabled={isLoading}
+                            />
                             {candidates.length > 1 && (
-                                <button type="button" onClick={() => removeCandidate(index)} style={{background: 'red', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer'}}>Xóa</button>
+                                <button
+                                    type="button"
+                                    className="btn-remove-candidate"
+                                    onClick={() => removeCandidate(index)}
+                                >
+                                    Xóa
+                                </button>
                             )}
                         </div>
                     ))}
-                    <button type="button" className="btn-add-candidate" onClick={addCandidate} disabled={isLoading}>+ Thêm ứng viên</button>
+                    <button type="button" className="btn-add-candidate" onClick={addCandidate} disabled={isLoading}>
+                        <span>+</span> Thêm ứng viên mới
+                    </button>
                 </div>
 
                 <div className="form-actions" style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
                     <button type="button" onClick={onComplete} className="btn-cancel" disabled={isLoading}>Hủy bỏ</button>
                     <button type="submit" className="btn-submit" disabled={isLoading}>
-                        {isLoading ? "Đang xử lý..." : (editData ? "Cập nhật Database" : "Khởi tạo & Lưu Database")}
+                        {isLoading ? "Đang xử lý..." : (editData ? "Cập nhật " : "Khởi tạo & Lưu Database")}
                     </button>
                 </div>
             </form>

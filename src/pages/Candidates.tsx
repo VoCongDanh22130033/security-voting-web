@@ -99,51 +99,69 @@ const Candidates = () => {
 
   return (
       <div className="candidates-container">
-        <div className="header-actions" style={{ display: 'flex', justifyContent: 'space-between', padding: '20px' }}>
-          <button className="btn-back" onClick={() => navigate(-1)}>← Quay lại</button>
+        {/* Tiêu đề nằm trên cùng */}
+        <motion.h2
+            className="page-title"
+            style={{ fontSize: '40px', fontWeight: '800', color: '#333', marginBottom: '20px', zIndex: 2 }}
+        >
+          Danh Sách <span style={{ color: '#ff6b6b' }}>Ứng Viên</span>
+        </motion.h2>
+
+        {/* Khối ứng viên luôn nằm giữa */}
+        <div className="candidates-wrapper">
+          <div className="candidates-grid">
+            {candidates.map((c, index) => {
+              const percent = totalVotes > 0 ? ((c.votes / totalVotes) * 100).toFixed(1) : "0";
+              return (
+                  <motion.div
+                      key={c.id}
+                      className="candidate-card"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                  >
+                    <div className="candidate-avatar">
+                      <img
+                          src={c.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random`}
+                          alt={c.name}
+                      />
+                    </div>
+                    <div className="candidate-details">
+                      <h3 className="info-value">{c.name}</h3>
+                      <p className="candidate-desc">{c.description || "Chưa có kinh nghiệm"}</p>
+                    </div>
+                    <div className="vote-stats">
+                      <div className="vote-progress-container">
+                        <div className="vote-progress-bar" style={{ width: `${percent}%` }} />
+                      </div>
+                      <div className="vote-info">
+                        <span>{percent}% phiếu bầu ({c.votes} phiếu)</span>
+                      </div>
+                    </div>
+                    <button
+                        className="btn-vote-now"
+                        disabled={isSubmitting}
+                        onClick={() => handleVote(c.id, c.name)}
+                    >
+                      {isSubmitting ? "Đang xử lý..." : "Bình chọn ngay"}
+                    </button>
+                  </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Nút quay lại và Xem kết quả chuyển xuống dưới cùng */}
+        <div className="footer-actions-candidates">
+          <button className="btn-back-bottom" onClick={() => navigate(-1)}>
+            Quay lại trang trước
+          </button>
           <button
-              className="btn-view-results"
+              className="btn-view-results-bottom"
               onClick={() => navigate(`/results?electionId=${electionId}`)}
-              style={{ padding: '10px 20px', backgroundColor: '#4ecdc4', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}
           >
             📊 Xem kết quả hiện tại
           </button>
-        </div>
-        <motion.h2 className="page-title">Danh Sách Ứng Viên</motion.h2>
-        <div className="candidates-grid">
-          {candidates.map((c, index) => {
-            const percent = totalVotes > 0 ? ((c.votes / totalVotes) * 100).toFixed(1) : "0";
-            return (
-                <motion.div
-                    key={c.id}
-                    className="candidate-card"
-                    initial={{ y: 40 }}
-                    animate={{ y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                >
-                  <div className="candidate-avatar">
-                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random`} alt={c.name} />
-                  </div>
-                  <div className="candidate-details">
-                    <h3>{c.name}</h3>
-                    <p className="candidate-desc">{c.description || "Chưa có kinh nghiệm"}</p>
-                  </div>
-                  <div className="vote-stats">
-                    <div className="vote-progress-container">
-                      <div className="vote-progress-bar" style={{ width: `${percent}%` }} />
-                    </div>
-                    <div className="vote-info"><span>{percent}% phiếu bầu ({c.votes} phiếu)</span></div>
-                  </div>
-                  <button
-                      className="btn-vote-now"
-                      disabled={isSubmitting}
-                      onClick={() => handleVote(c.id, c.name)}
-                  >
-                    {isSubmitting ? "Đang xử lý..." : "Bình chọn ngay"}
-                  </button>
-                </motion.div>
-            );
-          })}
         </div>
       </div>
   );

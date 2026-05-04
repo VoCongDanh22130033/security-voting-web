@@ -10,6 +10,7 @@ export interface User {
   username: string;
   email: string;
   roles: string[];
+  image_url?: string;
 }
 
 export interface LoginResponse {
@@ -18,7 +19,9 @@ export interface LoginResponse {
   username: string;
   email: string;
   roles: string[];
+  image_url?: string;
 }
+
 
 export interface AuthContextType {
   user: User | null;

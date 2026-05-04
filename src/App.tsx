@@ -23,14 +23,17 @@ function App() {
             <ProfileProvider>
                 <BrowserRouter>
                     <Routes>
-                        {/* Public Routes */}
-                        <Route path="/" element={<Login/>}/>
+                        <Route element={<UserLayout />}>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/home" element={<Home />} />
+                        </Route>
+                        <Route path="/login" element={<Login/>}/>
+
                         <Route path="/register" element={<Register/>}/>
                         <Route path="/forgot-password" element={<ForgotPassword/>}/>
 
                         {/* 1. Nhóm Route chung cho tất cả người dùng đã đăng nhập */}
                         <Route element={<ProtectedRoute><UserLayout/></ProtectedRoute>}>
-                            <Route path="/home" element={<Home/>}/>
                             <Route path="/profile" element={<Profile/>}/>
                             <Route path="/votestatus" element={<VoteStatus/>}/>
                             <Route path="/elections" element={<Elections/>}/>
@@ -57,9 +60,6 @@ function App() {
                         }>
                             <Route path="/admin" element={<Admin/>}/>
                         </Route>
-
-
-
                     </Routes>
                 </BrowserRouter>
             </ProfileProvider>

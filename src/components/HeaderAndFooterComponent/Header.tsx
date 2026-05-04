@@ -9,24 +9,18 @@ const Header: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Hàm xử lý điều hướng thông minh dựa trên Role ID
   const navigateByRole = () => {
     if (!isAuthenticated || !user) {
       navigate("/");
       return;
     }
-
-    // Logic điều hướng theo yêu cầu của Danh
-    // Lưu ý: Kiểm tra user.roles hoặc giả định bạn đã trả về roleId từ Backend/AuthContext
-    // Ở đây mình ưu tiên kiểm tra roleId nếu có, hoặc check mảng roles
     const roles = user.roles || [];
-
     if (roles.includes("ROLE_ADMIN")) {
-      navigate("/admin"); // ID = 1
+      navigate("/admin");
     } else if (roles.includes("ROLE_ORGANIZER")) {
-      navigate("/host-dashboard"); // ID = 2
+      navigate("/host-dashboard");
     } else {
-      navigate("/home"); // ID = 3 hoặc mặc định
+      navigate("/home");
     }
   };
 
@@ -48,13 +42,11 @@ const Header: React.FC = () => {
 
   return (
       <nav className="navbar">
-        {/* Click vào Logo sẽ điều hướng theo Role */}
         <div className="nav-logo" onClick={navigateByRole} style={{ cursor: 'pointer' }}>
           SecuVote
         </div>
 
         <ul className="nav-links">
-          {/* Trang chủ cũng điều hướng theo Role để tránh Voter vào nhầm Dashboard */}
           <li onClick={navigateByRole}>Trang chủ</li>
           <li onClick={() => navigate("/elections")}>Cuộc bầu cử</li>
           <li onClick={() => navigate("/results")}>Kết quả</li>
@@ -69,14 +61,23 @@ const Header: React.FC = () => {
                     style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
                 >
                   <div className="avatar-small">
-                    {user.username?.charAt(0).toUpperCase()}
+                    <img
+                        /* Sử dụng đúng key image_url từ Backend[cite: 11] */
+                        src={user.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=ff6b6b&color=fff`}
+                        alt="Avatar"
+                        className="header-avatar-img"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          /* Xử lý khi URL từ database (như CNN) bị lỗi hoặc chặn[cite: 11] */
+                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=ff6b6b&color=fff`;
+                        }}
+                    />
                   </div>
                   <span className="user-name">Chào, {user.username} ▾</span>
                 </div>
 
                 {showDropdown && (
                     <div className="nav-dropdown">
-                      {/* Mục quản lý nhanh tùy theo Role */}
                       {user.roles?.includes("ROLE_ORGANIZER") && (
                           <div className="dropdown-item" onClick={() => { navigate("/host-dashboard"); setShowDropdown(false); }}>
                             📊 Quản lý bầu cử
@@ -87,7 +88,6 @@ const Header: React.FC = () => {
                             ⚙️ Quản trị hệ thống
                           </div>
                       )}
-
                       <div className="dropdown-item" onClick={() => { navigate("/profile"); setShowDropdown(false); }}>
                         👤 Thông tin cá nhân
                       </div>
@@ -100,7 +100,7 @@ const Header: React.FC = () => {
               </div>
           ) : (
               <div className="auth-buttons">
-                <button className="btn-login" onClick={() => navigate("/")}>Đăng nhập</button>
+                <button className="btn-login" onClick={() => navigate("/login")}>Đăng nhập</button>
                 <button className="btn-register" onClick={() => navigate("/register")}>Đăng ký</button>
               </div>
           )}

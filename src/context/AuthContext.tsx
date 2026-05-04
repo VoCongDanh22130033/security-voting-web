@@ -37,21 +37,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
+// Trong file AuthContext.tsx
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await authService.login({ email, password });
 
-      // Khởi tạo object user từ response phẳng của Backend
+      // CẬP NHẬT TẠI ĐÂY: Thêm image_url vào object userData
       const userData: User = {
         id: response.id,
         username: response.username,
         email: response.email,
-        roles: response.roles
+        roles: response.roles,
+        image_url: response.image_url // <--- Dòng này cực kỳ quan trọng[cite: 10]
       };
 
-      // Lưu trữ để sử dụng khi reload trang
+      // Lưu trữ vào localStorage để khi F5 vẫn còn ảnh[cite: 10]
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(userData));
 

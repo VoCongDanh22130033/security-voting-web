@@ -3,6 +3,7 @@ import "../assets/css/home.css";
 
 const Home: React.FC = () => {
     return (
+
         <div className="home-container">
             <main className="home-main">
                 <div className="home-content">

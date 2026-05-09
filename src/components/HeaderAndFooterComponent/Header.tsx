@@ -62,18 +62,16 @@ const Header: React.FC = () => {
                 >
                   <div className="avatar-small">
                     <img
-                        /* Sử dụng đúng key image_url từ Backend[cite: 11] */
-                        src={user.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=ff6b6b&color=fff`}
+                        src={user.image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=ff6b6b&color=fff`}
                         alt="Avatar"
                         className="header-avatar-img"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={(e) => {
-                          /* Xử lý khi URL từ database (như CNN) bị lỗi hoặc chặn[cite: 11] */
-                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=ff6b6b&color=fff`;
+                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=ff6b6b&color=fff`;
                         }}
                     />
                   </div>
-                  <span className="user-name">Chào, {user.username} ▾</span>
+                  <span className="user-name">Chào, {user.fullName} ▾</span>
                 </div>
 
                 {showDropdown && (

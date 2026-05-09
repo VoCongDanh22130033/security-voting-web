@@ -40,14 +40,18 @@
 .avatar-circle {
     width: 100px;
     height: 100px;
-    background: rgba(255,255,255,0.2);
-    border: 4px solid #fff;
     border-radius: 50%;
+    overflow: hidden; /* Cắt ảnh theo vòng tròn */
     display: flex;
-    justify-content: center;
     align-items: center;
-    font-size: 40px;
-    font-weight: bold;
+    justify-content: center;
+    background: #eee;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ảnh sẽ tự cắt cúp để vừa vòng tròn mà không méo */
 }
 
 .role-badge {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import type { User } from "../types/auth";
-import authService from "../services/authService";
+import type {User} from "../types/auth";
+import { userApi } from "../api/userApi"; // ✅ Dùng named import đúng cách
 
 interface AuthContextType {
   user: User | null;
@@ -37,25 +37,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-// Trong file AuthContext.tsx
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await authService.login({ email, password });
+      const response = await userApi.login({ email, password });
 
-      // CẬP NHẬT TẠI ĐÂY: Thêm image_url vào object userData
       const userData: User = {
         id: response.id,
-        username: response.username,
+        fullName: response.fullName,
         email: response.email,
         roles: response.roles,
-        image_url: response.image_url // <--- Dòng này cực kỳ quan trọng[cite: 10]
+        image_url: response.image_url
       };
 
-      // Lưu trữ vào localStorage để khi F5 vẫn còn ảnh[cite: 10]
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("userEmail", response.email);
 
       setUser(userData);
       setIsAuthenticated(true);
@@ -83,7 +81,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within AuthProvider");

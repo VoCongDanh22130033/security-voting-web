@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { getCandidates, castVote, getBlindSignature } from "../services/api";
-import api from "../services/api";
+import { electionApi } from "../api/electionApi";
+import axiosClient from "../api/axiosClient";
 import Swal from "sweetalert2";
 import bigInt from "big-integer";
 import "../assets/css/candidates.css";
@@ -18,7 +18,7 @@ const Candidates = () => {
   useEffect(() => {
     if (electionId) {
       setLoading(true);
-      getCandidates(Number(electionId))
+      electionApi.getCandidates(Number(electionId))
       .then((res) => {
         // Đồng bộ dữ liệu hiển thị với trường voteCount từ Backend
         const data = res.data.map((c: any) => ({ ...c, votes: c.voteCount || 0 }));
@@ -48,7 +48,7 @@ const Candidates = () => {
       setIsSubmitting(true);
 
       try {
-        const pkRes = await api.get("/api/crypto/public-key");
+        const pkRes = await axiosClient.get("/api/crypto/public-key");
         const N = bigInt(pkRes.data.modulus, 16);
         const E = bigInt(pkRes.data.exponent, 16);
         const m = bigInt(candidateId);
@@ -62,7 +62,7 @@ const Candidates = () => {
         const blindedMessageHex = blindedMessageBI.toString(16);
         const blindedMessageBase64 = btoa(blindedMessageHex);
 
-        const signatureRes = await getBlindSignature({
+        const signatureRes = await electionApi.getBlindSignature({
           electionId: Number(electionId),
           blindedMessage: blindedMessageBase64
         });
@@ -81,8 +81,7 @@ const Candidates = () => {
         };
 
         console.log(">>> [FE] Gửi phiếu bầu:", votePayload);
-        await castVote(votePayload);
-
+        await electionApi.castVote(votePayload);
         await Swal.fire("Thành công!", "Phiếu bầu đã được ghi nhận vào database.", "success");
         navigate(`/results?electionId=${electionId}`);
 

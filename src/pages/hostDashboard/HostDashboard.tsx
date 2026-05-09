@@ -1,23 +1,36 @@
 import React, { useState, useEffect } from "react";
-import ElectionTimeline from "../../components/electionComponent/ElectionTimeline.tsx";
-import CreateElection from "../../components/electionComponent/CreateElection";
-import ElectionStatusManager from "../../components/electionComponent/ElectionStatusManager";
+
+
 import "../../assets/css/host-dashboard.css";
-import { deleteElection, getElections } from "../../services/api";
-import { useAuth } from "../../context/AuthContext.tsx";
+
 import { useNavigate } from "react-router-dom";
+import {useAuth} from "../../context/AuthContext.tsx";
+import electionApi from "../../api/electionApi.ts";
+import CreateElection from "../../components/electionComponent/CreateElection.tsx";
+
+// ✅ THÊM: Định nghĩa kiểu dữ liệu để hết lỗi 'never'
+interface Election {
+  id: number;
+  title: string;
+  status: string;
+  roleId: number;
+}
+
 const HostDashboard: React.FC = () => {
-  const { user } = useAuth(); // Lấy thông tin user hiện tại từ Context
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"elections" | "voters">("elections");
-  const [subView, setSubView] = useState<"list" | "create" | "timeline" | "status">("list");
-  const [elections, setElections] = useState<any[]>([]);
+  const [subView, setSubView] = useState<"list" | "create">("list");
+
+  // ✅ SỬA: Thay đổi từ never[] thành Election[] để hết lỗi TS2339
+  const [elections, setElections] = useState<Election[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [editingElection, setEditingElection] = useState<any | null>(null);
+  const [editingElection, setEditingElection] = useState<Election | null>(null);
   const navigate = useNavigate();
+
   const handleViewElection = (id: number) => {
-    // Điều hướng sang trang chi tiết
     navigate(`/election-detail/${id}`);
   };
+
   useEffect(() => {
     if (activeTab === "elections" && subView === "list") {
       fetchElections();
@@ -27,7 +40,8 @@ const HostDashboard: React.FC = () => {
   const fetchElections = async () => {
     setLoading(true);
     try {
-      const response = await getElections();
+      // ✅ SỬA: Gọi electionApi.getAll()
+      const response = await electionApi.getAll();
       setElections(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách bầu cử:", error);
@@ -39,7 +53,8 @@ const HostDashboard: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm("Bạn có chắc chắn muốn ẩn cuộc bầu cử này?")) {
       try {
-        await deleteElection(id);
+        // ✅ SỬA: Gọi electionApi.delete()
+        await electionApi.delete(id);
         alert("Đã ẩn cuộc bầu cử thành công!");
         fetchElections();
       } catch (error) {
@@ -48,7 +63,7 @@ const HostDashboard: React.FC = () => {
     }
   };
 
-  const handleEditClick = (election: any) => {
+  const handleEditClick = (election: Election) => {
     setEditingElection(election);
     setSubView("create");
   };
@@ -86,14 +101,12 @@ const HostDashboard: React.FC = () => {
                             <table className="admin-table">
                               <thead>
                               <tr>
-                                <th>ID</th>
+                                <th>STT</th>
                                 <th>Tên cuộc bầu cử</th>
                                 <th>Trạng thái</th>
                                 <th>Hành động</th>
                               </tr>
                               </thead>
-                              {/* HostDashboard.tsx */}
-
                               <tbody>
                               {elections.map((election, index) => (
                                   <tr key={election.id}>
@@ -101,19 +114,15 @@ const HostDashboard: React.FC = () => {
                                     <td>{election.title}</td>
                                     <td>{election.status}</td>
                                     <td>
-                                      {/* Nút Xem: Hiển thị cho tất cả Organizer (roleId === 2) */}
-                                      {election.roleId === 2 && (
-                                          <button
-                                              className="btn-view"
-                                              style={{ backgroundColor: '#2196F3', color: 'white', marginRight: '5px', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                              onClick={() => handleViewElection(election.id)}
-                                          >
-                                            Xem
-                                          </button>
-                                      )}
+                                      <button
+                                          className="btn-view"
+                                          style={{ backgroundColor: '#2196F3', color: 'white', marginRight: '5px', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                          onClick={() => handleViewElection(election.id)}
+                                      >
+                                        Xem
+                                      </button>
 
-                                      {/* Nút Sửa & Xóa: Giữ nguyên logic cũ của bạn */}
-                                      {election.roleId === 2 && user?.roles?.includes("ROLE_ORGANIZER") && (
+                                      {user?.roles?.includes("ROLE_ORGANIZER") && (
                                           <>
                                             <button className="btn-edit" onClick={() => handleEditClick(election)}>Sửa</button>
                                             <button className="btn-delete" onClick={() => handleDelete(election.id)}>Xóa</button>
@@ -138,23 +147,21 @@ const HostDashboard: React.FC = () => {
                           }}
                       />
                   )}
-                  {subView === "timeline" && <ElectionTimeline />}
-                  {subView === "status" && <ElectionStatusManager />}
                 </div>
             ) : (
                 <div className="management-section">
-                  <h3>Danh sách cử tri</h3>
-                  <div className="section-header">
-                    <button className="btn-add">+ Thêm cử tri</button>
-                  </div>
-                  <table className="admin-table">
-                    <thead>
-                    <tr><th>STT</th><th>Họ và Tên</th><th>Email</th><th>Hành động</th></tr>
-                    </thead>
-                    <tbody>
-                    <tr><td colSpan={4} style={{ textAlign: 'center' }}>Chưa có dữ liệu cử tri</td></tr>
-                    </tbody>
-                  </table>
+                    <h3>Danh sách cử tri</h3>
+                    <div className="section-header">
+                      <button className="btn-add">+ Thêm cử tri</button>
+                    </div>
+                    <table className="admin-table">
+                      <thead>
+                      <tr><th>STT</th><th>Họ và Tên</th><th>Email</th><th>Hành động</th></tr>
+                      </thead>
+                      <tbody>
+                      <tr><td colSpan={4} style={{ textAlign: 'center' }}>Chưa có dữ liệu cử tri</td></tr>
+                      </tbody>
+                    </table>
                 </div>
             )}
           </div>

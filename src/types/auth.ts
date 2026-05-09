@@ -1,22 +1,17 @@
-// Định nghĩa kiểu dữ liệu cho Authentication
 
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
 
 export interface User {
   id: number;
-  username: string;
+  fullName: string;
   email: string;
   roles: string[];
   image_url?: string;
 }
 
 export interface LoginResponse {
+  fullName: string;
   token: string;
   id: number;
-  username: string;
   email: string;
   roles: string[];
   image_url?: string;
@@ -33,7 +28,6 @@ export interface AuthContextType {
   clearError: () => void;
 }
 export interface RegisterRequest {
-  username: string;
   email: string;
   password: string;
   fullName?: string;

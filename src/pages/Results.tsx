@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { getCandidates } from "../services/api";
+// ✅ SỬA: Import đúng đối tượng electionApi (Sửa lỗi import trống)
+import { electionApi } from "../api/electionApi";
 import "../assets/css/results.css";
 
 interface CandidateResult {
@@ -23,7 +24,9 @@ const Results: React.FC = () => {
 
   const fetchResults = useCallback(async (id: number) => {
     try {
-      const res = await getCandidates(id);
+      // ✅ SỬA: Gọi electionApi.getCandidates(id) thay vì gọi hàm lẻ
+      const res = await electionApi.getCandidates(id);
+
       const data = res.data.map((c: any, index: number) => ({
         id: c.id,
         name: c.name,
@@ -40,7 +43,9 @@ const Results: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (electionId) fetchResults(Number(electionId));
+    if (electionId) {
+      fetchResults(Number(electionId));
+    }
   }, [electionId, fetchResults]);
 
   const totalVotes = results.reduce((acc, obj) => acc + obj.votes, 0);

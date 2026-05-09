@@ -45,13 +45,29 @@ const Profile: React.FC = () => {
                     {/* HEADER */}
                     <div className="profile-header">
                         <div className="avatar-circle">
-                            {(profile.fullName || profile.user?.username || "U")
-                            .charAt(0)
-                            .toUpperCase()}
+                            {/* Kiểm tra đường dẫn ảnh có tồn tại không */}
+                            {(profile.image_url || profile.user?.image_url) ? (
+                                <img
+                                    src={profile.image_url || profile.user?.image_url}
+                                    alt="Avatar"
+                                    className="avatar-img"
+                                    onError={(e) => {
+                                        // Nếu ảnh lỗi, ẩn tag img để hiện chữ cái fallback
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        // Ép hiển thị lại span chữ cái nếu cần bằng cách dùng state hoặc ref
+                                    }}
+                                />
+                            ) : (
+                                <span>
+            {(profile.fullName  || "U")
+            .charAt(0)
+            .toUpperCase()}
+        </span>
+                            )}
                         </div>
 
                         <div>
-                            <h2>{profile.fullName || profile.user?.username}</h2>
+                            <h2>{profile.fullName }</h2>
                             <p className="role-badge">
                                 {profile.user?.roles?.[0]?.name?.replace("ROLE_", "")}
                             </p>
@@ -100,11 +116,6 @@ const Profile: React.FC = () => {
                                     <div className="info-item">
                                         <label>Email</label>
                                         <p>{profile.user?.email}</p>
-                                    </div>
-
-                                    <div className="info-item">
-                                        <label>Username</label>
-                                        <p>{profile.user?.username}</p>
                                     </div>
 
                                     <div className="info-item">

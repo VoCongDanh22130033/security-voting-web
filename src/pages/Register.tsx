@@ -6,7 +6,6 @@ const Register: React.FC = () => {
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
-        username: "",
         password: "",
         confirmPassword: ""
     });
@@ -27,7 +26,6 @@ const Register: React.FC = () => {
 
         try {
             const response = await axios.post("http://localhost:8080/api/auth/register", {
-                username: formData.username,
                 password: formData.password,
                 email: formData.email,
                 fullName: formData.fullName
@@ -73,16 +71,7 @@ const Register: React.FC = () => {
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label>USERNAME</label>
-                            <input
-                                type="text"
-                                name="username"
-                                placeholder="Choose a username"
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
+
 
                         <div className="form-group">
                             <label>PASSWORD</label>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../../services/api";
+// ✅ Sửa: Import đúng tên đối tượng electionApi
+import { electionApi } from "../../api/electionApi";
 import "../../assets/css/election-detail.css";
 
 const ElectionDetail: React.FC = () => {
@@ -11,14 +12,17 @@ const ElectionDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchDetail = async () => {
+      if (!id) return;
       try {
-        const res = await api.get(`/api/elections/${id}`);
+        // ✅ Sửa: Dùng electionApi.getById thay vì api.get
+        const res = await electionApi.getById(id);
         setElection(res.data);
 
-        const candRes = await api.get(`/api/elections/${id}/candidates`);
+        // ✅ Sửa: Dùng electionApi.getCandidates thay vì api.get
+        const candRes = await electionApi.getCandidates(id);
         setCandidates(candRes.data);
       } catch (error) {
-        console.error(error);
+        console.error("Lỗi khi tải chi tiết:", error);
       }
     };
     fetchDetail();
@@ -30,26 +34,20 @@ const ElectionDetail: React.FC = () => {
 
   return (
       <div className="election-detail-container">
-
-        {/* BACK BUTTON */}
         <button className="btn-back-fixed" onClick={() => navigate(-1)}>
           ← Quay lại
         </button>
 
         <div className="detail-card">
-
-          {/* HEADER */}
           <div className="detail-header">
             <h2>{election.title}</h2>
             <p>{election.description}</p>
           </div>
 
-          {/* INFO GRID */}
           <div className="info-grid">
-
             <div className="info-card">
               <span>Trạng thái</span>
-              <div className={`status-badge ${election.status.toLowerCase()}`}>
+              <div className={`status-badge ${election.status?.toLowerCase()}`}>
                 {election.status === "OPEN" && "Đang diễn ra"}
                 {election.status === "ENDED" && "Đã kết thúc"}
                 {election.status === "UPCOMING" && "Sắp diễn ra"}
@@ -65,35 +63,24 @@ const ElectionDetail: React.FC = () => {
               <span>Kết thúc</span>
               <strong>{new Date(election.endDate).toLocaleString()}</strong>
             </div>
-
           </div>
 
-          {/* UPCOMING NOTICE */}
           {election.status === "UPCOMING" && (
-              <div className="coming-badge">
-                Chưa đến thời gian bình chọn
-              </div>
+              <div className="coming-badge">Chưa đến thời gian bình chọn</div>
           )}
 
-          {/* CANDIDATES */}
           <h3 className="candidate-title">Danh sách ứng viên</h3>
-
           <div className="candidate-list">
             {candidates.map((c) => (
                 <div className="candidate-row" key={c.id}>
-
-                  <div className="candidate-avatar">
-                    {c.name?.charAt(0)}
-                  </div>
-
+                  <div className="candidate-avatar">{c.name?.charAt(0)}</div>
                   <div className="candidate-info">
                     <strong>{c.name}</strong>
-                    <span>Kinh nghiệm: {c.description }</span>
+                    <span>Kinh nghiệm: {c.description}</span>
                   </div>
                 </div>
             ))}
           </div>
-
         </div>
       </div>
   );

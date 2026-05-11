@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/css/login.css"; // Tái sử dụng CSS chung của Login
+import "../assets/css/login.css";
 import axios from "axios";
+
 const Register: React.FC = () => {
     const [formData, setFormData] = useState({
         fullName: "",
@@ -10,54 +11,79 @@ const Register: React.FC = () => {
         confirmPassword: ""
     });
 
+    // Các state quản lý lỗi hiển thị tại chỗ
+    const [emailError, setEmailError] = useState<string | null>(null);
+    const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+    const [generalError, setGeneralError] = useState<string | null>(null);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
     const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        // Xóa lỗi khi người dùng bắt đầu nhập lại
+        if (e.target.name === "email") setEmailError(null);
+        if (e.target.name === "confirmPassword" || e.target.name === "password") {
+            setConfirmPasswordError(null);
+        }
     };
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Reset tất cả lỗi trước khi kiểm tra lại
+        setEmailError(null);
+        setPasswordError(null);
+        setConfirmPasswordError(null);
+        setGeneralError(null);
+
+        // 2. Validate mật khẩu và gán vào passwordError
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(formData.password)) {
+            setPasswordError("Mật khẩu phải tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!");
+            return;
+        }
+
         if (formData.password !== formData.confirmPassword) {
-            alert("Mật khẩu xác nhận không khớp!");
+            setConfirmPasswordError("Mật khẩu xác nhận không khớp!");
             return;
         }
 
         try {
-            const response = await axios.post("http://localhost:8080/api/auth/register", {
+            await axios.post("http://localhost:8080/auth/register", {
                 password: formData.password,
                 email: formData.email,
                 fullName: formData.fullName
             });
-
-            if (response.status === 200) {
-                alert("Đăng ký thành công! Đang chuyển hướng đến trang Đăng nhập...");
-                navigate("/"); // Quay lại trang Login
-            }
+            navigate("/verifi-email");
         } catch (error: any) {
-            alert(error.response?.data || "Đăng ký thất bại, vui lòng thử lại!");
+            const errorData = error.response?.data?.message || error.response?.data || "";
+            const msg = typeof errorData === 'string' ? errorData : JSON.stringify(errorData);
+
+            if (msg.toLowerCase().includes("email")) {
+                setEmailError("Email này đã được sử dụng. Vui lòng chọn email khác.");
+            } else {
+                setGeneralError(msg || "Đăng ký thất bại!");
+            }
         }
     };
 
     return (
         <div className="login-container">
             <div className="login-box">
-                {/* Phần bên trái: Form Đăng ký */}
                 <div className="login-form-section">
-                    <h2 className="form-title">Create Account</h2>
+                    <h2 className="form-title">Tạo Tài Khoản</h2>
                     <div className="title-underline"></div>
+
+                    {generalError && (
+                        <div style={{ color: "#ff4757", background: "#fff2f2", padding: "10px", borderRadius: "5px", marginBottom: "10px", fontSize: "13px" }}>
+                             {generalError}
+                        </div>
+                    )}
 
                     <form onSubmit={handleRegister}>
                         <div className="form-group">
-                            <label>FULL NAME</label>
-                            <input
-                                type="text"
-                                name="fullName"
-                                placeholder="Enter your full name"
-                                onChange={handleChange}
-                                required
-                            />
+                            <label>HỌ VÀ TÊN</label>
+                            <input type="text" name="fullName" placeholder="Nhập họ và tên" onChange={handleChange} required />
                         </div>
 
                         <div className="form-group">
@@ -65,49 +91,73 @@ const Register: React.FC = () => {
                             <input
                                 type="email"
                                 name="email"
-                                placeholder="Enter your email"
+                                placeholder="Nhập email"
                                 onChange={handleChange}
+                                style={emailError ? { borderColor: "#ff4757" } : {}}
                                 required
                             />
+                            {emailError && <span style={{ color: "#ff4757", fontSize: "12px", marginTop: "4px" }}>  {emailError}</span>}
                         </div>
 
-
-
                         <div className="form-group">
-                            <label>PASSWORD</label>
+                            <label>MẬT KHẨU</label>
                             <input
                                 type="password"
                                 name="password"
-                                placeholder="Create a password"
-                                onChange={handleChange}
+                                placeholder="Tạo mật khẩu"
+                                value={formData.password}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    if (passwordError) setPasswordError(null); // Xóa chữ đỏ khi người dùng gõ lại
+                                }}
+                                // Đổi màu viền nếu có lỗi
+                                style={passwordError ? { borderColor: "#ff4757" } : {}}
                                 required
                             />
+                            {/* HIỂN THỊ LỖI DƯỚI PASSWORD */}
+                            {passwordError && (
+                                <span style={{
+                                    color: "#ff4757",
+                                    fontSize: "12px",
+                                    marginTop: "4px",
+                                    fontWeight: "500",
+                                    display: "block"
+                                }}>
+              {passwordError}
+        </span>
+                            )}
                         </div>
 
                         <div className="form-group">
-                            <label>CONFIRM PASSWORD</label>
+                            <label>XÁC NHẬN MẬT KHẨU</label>
                             <input
                                 type="password"
                                 name="confirmPassword"
-                                placeholder="Repeat your password"
+                                placeholder="Nhập lại mật khẩu"
                                 onChange={handleChange}
+                                style={confirmPasswordError ? { borderColor: "#ff4757" } : {}}
                                 required
                             />
+                            {/* HIỂN THỊ LỖI DƯỚI CONFIRM PASSWORD */}
+                            {confirmPasswordError && (
+                                <span style={{ color: "#ff4757", fontSize: "12px", marginTop: "4px", fontWeight: "500" }}>
+                                     {confirmPasswordError}
+                                </span>
+                            )}
                         </div>
 
                         <div className="form-options">
                             <span className="remember-me" onClick={() => navigate("/")} style={{cursor: 'pointer'}}>
-                                Already have an account? <b>Login</b>
+                                Đã có tài khoản? <b>Đăng nhập</b>
                             </span>
-                            <button type="submit" className="submit-btn">Register</button>
+                            <button type="submit" className="submit-btn">Đăng Ký</button>
                         </div>
                     </form>
                 </div>
 
-                {/* Phần bên phải: Ảnh background (giống Login) */}
                 <div className="login-image-section">
                     <div className="overlay-content">
-                        <h1>Join the Voice</h1>
+                        <h1>Tham Gia Bình Chọn</h1>
                         <div className="content-underline"></div>
                         <p>Đăng ký ngay để thực hiện quyền công dân của bạn trong môi trường số an toàn.</p>
                     </div>

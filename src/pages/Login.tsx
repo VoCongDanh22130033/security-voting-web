@@ -34,7 +34,8 @@ const Login: React.FC = () => {
         navigate("/home");
       }
     } catch (err: any) {
-      setLocalError(err?.message || "Thông tin đăng nhập không chính xác");
+      const errorMessage = err.response?.data?.message || "Email hoặc mật khẩu không chính xác";
+      setLocalError(errorMessage);
     }
   };
   return (

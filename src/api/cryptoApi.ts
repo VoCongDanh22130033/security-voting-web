@@ -10,7 +10,7 @@ export const cryptoApi = {
   castVote: (voteData: {
     electionId: number;
     candidateId: number;
-    blindedContent: string; // Thực tế là unblinded content sau khi xử lý
+    blindedContent: string;
     signature: string;
   }) => {
     return axiosClient.post('/api/votes/cast', voteData);

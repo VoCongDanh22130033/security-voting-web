@@ -4,7 +4,12 @@ import type {User, LoginResponse} from '../types/auth';
 export const userApi = {
   // Đăng nhập
   login: async (credentials: { email: string; password: string }): Promise<LoginResponse> => {
-    const response = await axiosClient.post('/voter/login', credentials);
+    const response = await axiosClient.post('/auth/login', credentials);
+    return response.data;
+  },
+  // đăng ký
+  register: async (credentials: { email: string; password: string }): Promise<LoginResponse> => {
+    const response = await axiosClient.post('/auth/register', credentials);
     return response.data;
   },
 
@@ -27,5 +32,12 @@ export const userApi = {
   // Đặt lại mật khẩu
   resetPassword: (data: never) =>
       axiosClient.post('/voter/reset-password', data),
+  // Xác thực email
+  verifyEmail: (token: string) =>
+      axiosClient.post('/auth/verify-email', { token }),
+
+  // Gửi lại mã
+  resendToken: (email: string) =>
+      axiosClient.post('/auth/resend-token', { email }),
 };
 export default userApi;

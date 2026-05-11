@@ -7,8 +7,6 @@ import { useNavigate } from "react-router-dom";
 import {useAuth} from "../../context/AuthContext.tsx";
 import electionApi from "../../api/electionApi.ts";
 import CreateElection from "../../components/electionComponent/CreateElection.tsx";
-
-// ✅ THÊM: Định nghĩa kiểu dữ liệu để hết lỗi 'never'
 interface Election {
   id: number;
   title: string;
@@ -20,8 +18,6 @@ const HostDashboard: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"elections" | "voters">("elections");
   const [subView, setSubView] = useState<"list" | "create">("list");
-
-  // ✅ SỬA: Thay đổi từ never[] thành Election[] để hết lỗi TS2339
   const [elections, setElections] = useState<Election[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [editingElection, setEditingElection] = useState<Election | null>(null);
@@ -40,7 +36,6 @@ const HostDashboard: React.FC = () => {
   const fetchElections = async () => {
     setLoading(true);
     try {
-      // ✅ SỬA: Gọi electionApi.getAll()
       const response = await electionApi.getAll();
       setElections(response.data);
     } catch (error) {
@@ -53,7 +48,6 @@ const HostDashboard: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm("Bạn có chắc chắn muốn ẩn cuộc bầu cử này?")) {
       try {
-        // ✅ SỬA: Gọi electionApi.delete()
         await electionApi.delete(id);
         alert("Đã ẩn cuộc bầu cử thành công!");
         fetchElections();

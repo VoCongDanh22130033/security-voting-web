@@ -2,7 +2,6 @@
 .election-detail-container {
   min-height: 100vh;
   padding: 80px 20px;
-  /* Thêm hình ảnh nền đồng bộ */
   background: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 247, 230, 0.8)),
   url('https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?q=80&w=2070&auto=format&fit=crop');
   background-size: cover;
@@ -73,17 +72,79 @@
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.8);
   transition: transform 0.3s ease;
+  text-align: center;
 }
 
-.info-card:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.8);
+.info-card span {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 5px;
 }
 
-/* --- CANDIDATE ROW --- */
-.candidate-row {
+.info-card strong {
+  color: #1e293b;
+  font-size: 15px;
+}
+
+/* --- CANDIDATE LIST --- */
+.candidate-title {
+  margin-top: 40px;
+  margin-bottom: 20px;
+  font-size: 22px;
+  color: #1f2d3d;
+}
+/* Container bao quanh Tên và Mô tả */
+.candidate-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+/* Biến group thành hàng ngang */
+.input-group.inline-group {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Định dạng Label nằm đầu hàng */
+.input-group.inline-group label {
+  width: 100px;
+  min-width: 100px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #3b82f6;
+  padding-top: 12px;
+  text-transform: none;
+  margin-bottom: 0;
+}
+
+/* Điều chỉnh Input và Textarea để chiếm hết không gian còn lại */
+.input-group.inline-group input,
+.input-group.inline-group textarea {
+  flex: 1;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+/* Hiệu ứng khi click */
+.input-group.inline-group input:focus,
+.input-group.inline-group textarea:focus {
+  border-color: #ff7a00; /
+  box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.1);
+  outline: none;
+}
+.candidate-item-card {
   display: flex;
   align-items: center;
+  gap: 20px;
   padding: 20px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.5);
@@ -92,22 +153,74 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.candidate-row:hover {
+.candidate-item-card:hover {
   transform: scale(1.02);
   background: rgba(255, 255, 255, 0.9);
   border-color: #ff7a00;
   box-shadow: 0 10px 25px rgba(255, 122, 0, 0.1);
 }
 
-.candidate-avatar {
-  width: 55px;
-  height: 55px;
-  font-size: 20px;
-  background: linear-gradient(135deg, #ff7a00, #ff9c41);
-  box-shadow: 0 4px 12px rgba(255, 122, 0, 0.3);
+.candidate-img-wrapper {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  flex-shrink: 0;
 }
 
-.candidate-info strong {
+.candidate-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ff7a00, #ff9c41);
+  color: white;
+  font-weight: bold;
+  font-size: 24px;
+}
+
+/* --- CANDIDATE DETAILS (Ứng viên & Mô tả) --- */
+.candidate-details {
+  flex: 1;
+}
+
+.candidate-details h4 {
+  margin-bottom: 5px;
   font-size: 18px;
   color: #1f2d3d;
 }
+
+.candidate-details p {
+  font-size: 14px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.label-text {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ff7a00; /* Đồng bộ màu cam thương hiệu */
+  margin-right: 8px;
+  text-transform: uppercase;
+}
+
+/* --- STATUS BADGES --- */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.status-badge.open { background: #dcfce7; color: #166534; }
+.status-badge.ended { background: #fee2e2; color: #991b1b; }

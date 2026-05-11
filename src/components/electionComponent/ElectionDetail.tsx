@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-// ✅ Sửa: Import đúng tên đối tượng electionApi
 import { electionApi } from "../../api/electionApi";
 import "../../assets/css/election-detail.css";
 
@@ -8,19 +7,13 @@ const ElectionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [election, setElection] = useState<any>(null);
-  const [candidates, setCandidates] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchDetail = async () => {
       if (!id) return;
       try {
-        // ✅ Sửa: Dùng electionApi.getById thay vì api.get
         const res = await electionApi.getById(id);
         setElection(res.data);
-
-        // ✅ Sửa: Dùng electionApi.getCandidates thay vì api.get
-        const candRes = await electionApi.getCandidates(id);
-        setCandidates(candRes.data);
       } catch (error) {
         console.error("Lỗi khi tải chi tiết:", error);
       }
@@ -29,7 +22,12 @@ const ElectionDetail: React.FC = () => {
   }, [id]);
 
   if (!election) {
-    return <div style={{ padding: 40 }}>Đang tải...</div>;
+    return (
+        <div className="loading-container">
+          <div className="loader"></div>
+          <p>Đang tải dữ liệu...</p>
+        </div>
+    );
   }
 
   return (
@@ -39,47 +37,64 @@ const ElectionDetail: React.FC = () => {
         </button>
 
         <div className="detail-card">
-          <div className="detail-header">
-            <h2>{election.title}</h2>
-            <p>{election.description}</p>
+          {/* 1. Ảnh bìa cuộc bầu cử (Banner) */}
+          <div className="election-banner">
+            {election.image ? (
+                <img src={election.image} alt="Banner" />
+            ) : (
+                <div className="banner-placeholder">No Image</div>
+            )}
+            <div className={`status-overlay ${election.status?.toLowerCase()}`}>
+              {election.status === "OPEN" ? "● Đang diễn ra" : "Đã kết thúc"}
+            </div>
           </div>
 
-          <div className="info-grid">
-            <div className="info-card">
-              <span>Trạng thái</span>
-              <div className={`status-badge ${election.status?.toLowerCase()}`}>
-                {election.status === "OPEN" && "Đang diễn ra"}
-                {election.status === "ENDED" && "Đã kết thúc"}
-                {election.status === "UPCOMING" && "Sắp diễn ra"}
+          <div className="detail-content">
+            <div className="detail-header">
+              <h2>{election.title}</h2>
+              <p className="description">{election.description}</p>
+            </div>
+
+            {/* 2. Lưới thông tin thời gian */}
+            <div className="info-grid">
+              <div className="info-card">
+                <div className="info-text">
+                  <span>Ngày bắt đầu</span>
+                  <strong>{new Date(election.startDate).toLocaleString('vi-VN')}</strong>
+                </div>
+              </div>
+
+              <div className="info-card">
+                <div className="info-text">
+                  <span>Ngày kết thúc</span>
+                  <strong>{new Date(election.endDate).toLocaleString('vi-VN')}</strong>
+                </div>
               </div>
             </div>
 
-            <div className="info-card">
-              <span>Bắt đầu</span>
-              <strong>{new Date(election.startDate).toLocaleString()}</strong>
-            </div>
-
-            <div className="info-card">
-              <span>Kết thúc</span>
-              <strong>{new Date(election.endDate).toLocaleString()}</strong>
-            </div>
-          </div>
-
-          {election.status === "UPCOMING" && (
-              <div className="coming-badge">Chưa đến thời gian bình chọn</div>
-          )}
-
-          <h3 className="candidate-title">Danh sách ứng viên</h3>
-          <div className="candidate-list">
-            {candidates.map((c) => (
-                <div className="candidate-row" key={c.id}>
-                  <div className="candidate-avatar">{c.name?.charAt(0)}</div>
-                  <div className="candidate-info">
-                    <strong>{c.name}</strong>
-                    <span>Kinh nghiệm: {c.description}</span>
+            {/* 3. Danh sách ứng viên (Dạng Card hiện đại) */}
+            <h3 className="candidate-title">Danh sách ứng viên </h3>
+            <div className="candidate-grid-display">
+              {election.candidates?.map((c: any) => (
+                  <div className="candidate-item-card" key={c.id}>
+                    <div className="candidate-img-wrapper">
+                      {c.imageUrl ? (
+                          <img src={c.imageUrl} alt={c.name} />
+                      ) : (
+                          <div className="avatar-placeholder">{c.name?.charAt(0)}</div>
+                      )}
+                    </div>
+                    <div className="candidate-details">
+                      <h4>
+                        <span className="label-text">Ứng viên:</span> {c.name}
+                      </h4>
+                      <p>
+                        <span className="label-text">Mô tả:</span> {c.description || "Chưa có mô tả chi tiết cho ứng viên này."}
+                      </p>
+                    </div>
                   </div>
-                </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>

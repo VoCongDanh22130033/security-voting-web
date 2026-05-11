@@ -20,7 +20,7 @@ const Candidates = () => {
       setLoading(true);
       electionApi.getCandidates(Number(electionId))
       .then((res) => {
-        // Đồng bộ dữ liệu hiển thị với trường voteCount từ Backend
+
         const data = res.data.map((c: any) => ({ ...c, votes: c.voteCount || 0 }));
         setCandidates(data);
       })

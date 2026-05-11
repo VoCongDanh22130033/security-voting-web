@@ -36,11 +36,10 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     if (isAuthenticated) {
-      refreshProfile(); // Chỉ gọi khi đã đăng nhập
+      refreshProfile();
     } else {
-      setProfile(null); // Xóa profile khi logout
+      setProfile(null);
     }
-    // CHỈ theo dõi isAuthenticated để tránh vòng lặp vô tận
   }, [isAuthenticated]);
 
   return (

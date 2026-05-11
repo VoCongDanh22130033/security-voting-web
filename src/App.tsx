@@ -17,6 +17,7 @@ import Elections from "./pages/Elections.tsx";
 import ElectionDetail from "./components/electionComponent/ElectionDetail.tsx";
 import Candidates from "./pages/Candidates.tsx";
 import Results from "./pages/Results.tsx";
+import VerifyEmail from "./pages/VerifyEmail.tsx";
 function App() {
     return (
         <AuthProvider>
@@ -31,6 +32,7 @@ function App() {
 
                         <Route path="/register" element={<Register/>}/>
                         <Route path="/forgot-password" element={<ForgotPassword/>}/>
+                        <Route path="/verifi-email" element={<VerifyEmail/>}/>
 
                         {/* 1. Nhóm Route chung cho tất cả người dùng đã đăng nhập */}
                         <Route element={<ProtectedRoute><UserLayout/></ProtectedRoute>}>

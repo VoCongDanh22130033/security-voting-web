@@ -31,10 +31,9 @@ const Profile: React.FC = () => {
             [e.target.name]: e.target.value
         });
     };
-
+    // update
     const handleUpdateProfile = () => {
         console.log("Update profile:", formData);
-        // 👉 call API ở đây
     };
 
     return (
@@ -52,9 +51,7 @@ const Profile: React.FC = () => {
                                     alt="Avatar"
                                     className="avatar-img"
                                     onError={(e) => {
-                                        // Nếu ảnh lỗi, ẩn tag img để hiện chữ cái fallback
                                         (e.target as HTMLImageElement).style.display = 'none';
-                                        // Ép hiển thị lại span chữ cái nếu cần bằng cách dùng state hoặc ref
                                     }}
                                 />
                             ) : (

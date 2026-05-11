@@ -28,7 +28,7 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
+    const formatDateTime = (dt) => dt.length === 16 ? `${dt}:00` : dt;
     useEffect(() => {
         if (editData) {
             setTitle(editData.title || "");
@@ -84,6 +84,7 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
         }
     };
 
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
@@ -104,17 +105,17 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
         return "ĐANG DIỄN RA";
     };
 
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-
+        let finalRoleId = 1;
         try {
             // 1. Upload ảnh bìa cuộc bầu cử
             let finalElectionImageUrl = editData?.image || "";
             if (selectedFile) {
                 const res = await electionApi.uploadSingleFile(selectedFile);
-                finalElectionImageUrl = res.data.url;
+                // Kiểm tra xem Backend trả về res.data là chuỗi hay object
+                finalElectionImageUrl = typeof res.data === 'string' ? res.data : res.data.url;
             }
 
             // 2. Upload ảnh cho từng ứng viên
@@ -122,42 +123,61 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
                 let currentImageUrl = c.imageUrl || "";
                 if (c.imageFile) {
                     const res = await electionApi.uploadSingleFile(c.imageFile);
-                    currentImageUrl = res.data.url;
+                    currentImageUrl = typeof res.data === 'string' ? res.data : res.data.url;
                 }
                 return {
-                    id: c.id, // Giữ ID nếu đang update
+                    id: c.id,
                     name: c.name,
                     description: c.description,
                     imageUrl: currentImageUrl
                 };
             }));
 
+            if (editData?.roleId) {
+                // Nếu là đang sửa, giữ nguyên roleId của cuộc bầu cử đó
+                finalRoleId = editData.roleId;
+            } else if (user?.roles) {
+                // Nếu tạo mới, lấy theo Role của người đang đăng nhập
+                // Kiểm tra nếu roles có chứa ADMIN hoặc ORGANIZER hoặc một logic phân loại của bạn
+                // Giả sử: Nếu user có role đặc biệt thì gán là 2, còn lại là 1
+                if (user.roles.includes("ROLE_ORGANIZER") || user.roleId === 3) {
+                    finalRoleId = 3;
+                } else {
+                    finalRoleId = 1;
+                }
+            }
+            // 3. Chuẩn bị payload chuẩn DTO Backend
             const payload = {
                 title,
                 description,
-                startTime,
-                endTime,
-                roleId: user?.roleId || editData?.roleId,
-                image: finalElectionImageUrl,
+                startTime: startTime.length === 16 ? `${startTime}:00` : startTime,
+                endTime: endTime.length === 16 ? `${endTime}:00` : endTime,
+                roleId: finalRoleId,
+                imageUrl: finalElectionImageUrl,
                 candidates: updatedCandidates,
                 status: editData?.status || "OPEN"
             };
 
+            console.log("Dữ liệu gửi đi:", payload);
+
             if (editData?.id) {
+                // Gọi hàm update
                 await electionApi.update(editData.id, payload);
+                Swal.fire("Thành công", "Cập nhật cuộc bầu cử thành công!", "success");
             } else {
+                // Gọi hàm tạo mới
                 await electionApi.createPureJson(payload);
+                Swal.fire("Thành công", "Tạo mới cuộc bầu cử thành công!", "success");
             }
 
-            Swal.fire("Thành công", "Đã lưu thông tin cuộc bầu cử!", "success");
             if (onComplete) onComplete();
         } catch (error: any) {
-            Swal.fire("Lỗi", "Không thể lưu dữ liệu. Vui lòng thử lại!", "error");
+            console.error("Lỗi chi tiết:", error.response?.data || error.message);
+            Swal.fire("Lỗi", "Không thể lưu dữ liệu. Hãy kiểm tra format ngày tháng!", "error");
         } finally {
             setIsLoading(false);
         }
     };
-
     return (
         <div className="create-election-container">
             <h2 className="form-title">{editData ? "Cập nhật cuộc bầu cử" : "Tạo cuộc bầu cử mới"}</h2>

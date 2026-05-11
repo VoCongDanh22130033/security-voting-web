@@ -24,6 +24,8 @@ export const electionApi = {
     formData.append("file", file);
     return axiosClient.post("/api/elections/upload-single", formData);
   },
+
+
   createPureJson: (data: any) => axiosClient.post("/api/elections/create-json", data),
   // Cập nhật
   update: (id: number, data: any) =>

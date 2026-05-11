@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from "react";
-
-
 import "../../assets/css/host-dashboard.css";
-
 import { useNavigate } from "react-router-dom";
-import {useAuth} from "../../context/AuthContext.tsx";
+import { useAuth } from "../../context/AuthContext.tsx";
 import electionApi from "../../api/electionApi.ts";
 import CreateElection from "../../components/electionComponent/CreateElection.tsx";
+
 interface Election {
   id: number;
   title: string;
   status: string;
-  roleId: number;
+  roleId?: number | null;
+  startDate?: string;
+  endDate?: string;
 }
-
 const HostDashboard: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"elections" | "voters">("elections");
@@ -22,10 +21,6 @@ const HostDashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [editingElection, setEditingElection] = useState<Election | null>(null);
   const navigate = useNavigate();
-
-  const handleViewElection = (id: number) => {
-    navigate(`/election-detail/${id}`);
-  };
 
   useEffect(() => {
     if (activeTab === "elections" && subView === "list") {
@@ -45,11 +40,28 @@ const HostDashboard: React.FC = () => {
     }
   };
 
+  const renderStatusBadge = (status: string) => {
+    if (!status) return <span className="status-badge status-closed">N/A</span>;
+
+    const s = status.toUpperCase().trim();
+
+    switch (s) {
+      case "OPEN":
+        return <span className="status-badge status-open">Đang diễn ra</span>;
+      case "UPCOMING":
+        return <span className="status-badge status-upcoming">Sắp diễn ra</span>;
+      case "ENDED":
+      case "CLOSED":
+        return <span className="status-badge status-closed">Đã kết thúc</span>;
+      default:
+        return <span className="status-badge">{status}</span>;
+    }
+  };
+
   const handleDelete = async (id: number) => {
     if (window.confirm("Bạn có chắc chắn muốn ẩn cuộc bầu cử này?")) {
       try {
         await electionApi.delete(id);
-        alert("Đã ẩn cuộc bầu cử thành công!");
         fetchElections();
       } catch (error) {
         alert("Lỗi khi thực hiện ẩn dữ liệu!");
@@ -57,76 +69,86 @@ const HostDashboard: React.FC = () => {
     }
   };
 
-  const handleEditClick = (election: Election) => {
-    setEditingElection(election);
-    setSubView("create");
-  };
-
   return (
       <div className="host-container">
         <main className="host-main">
-          <div className="host-sidebar">
-            <h2>Quản Lý</h2>
-            <ul>
-              <li className={activeTab === "elections" ? "active" : ""} onClick={() => { setActiveTab("elections"); setSubView("list"); }}>
-                📊 Quản lý Bầu cử
-              </li>
-              <li className={activeTab === "voters" ? "active" : ""} onClick={() => setActiveTab("voters")}>
-                👥 Quản lý Cử tri
-              </li>
-            </ul>
-          </div>
+          <aside className="host-sidebar">
+            <div className="sidebar-logo">🗳️ Admin Panel</div>
+            <nav>
+              <ul>
+                <li className={activeTab === "elections" ? "active" : ""}
+                    onClick={() => { setActiveTab("elections"); setSubView("list"); }}>
+                  📊 Quản lý Bầu cử
+                </li>
+                <li className={activeTab === "voters" ? "active" : ""}
+                    onClick={() => setActiveTab("voters")}>
+                  👥 Quản lý Cử tri
+                </li>
+              </ul>
+            </nav>
+          </aside>
 
-          <div className="host-content">
+          <section className="host-content">
             {activeTab === "elections" ? (
                 <div className="management-section">
                   {subView === "list" && (
                       <>
                         <div className="section-header">
-                          <h3>Danh sách cuộc bầu cử</h3>
-                          <button className="btn-add" onClick={() => { setEditingElection(null); setSubView("create"); }}>
+                          <h3 className="section-title">Danh sách cuộc bầu cử</h3>
+                          <button className="btn-add-new" onClick={() => { setEditingElection(null); setSubView("create"); }}>
                             + Tạo cuộc bầu cử mới
                           </button>
                         </div>
 
                         {loading ? (
-                            <p>Đang tải dữ liệu...</p>
+                            <div className="loading-state">Đang tải dữ liệu...</div>
                         ) : (
-                            <table className="admin-table">
-                              <thead>
-                              <tr>
-                                <th>STT</th>
-                                <th>Tên cuộc bầu cử</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
-                              </tr>
-                              </thead>
-                              <tbody>
-                              {elections.map((election, index) => (
-                                  <tr key={election.id}>
-                                    <td>{index + 1}</td>
-                                    <td>{election.title}</td>
-                                    <td>{election.status}</td>
-                                    <td>
-                                      <button
-                                          className="btn-view"
-                                          style={{ backgroundColor: '#2196F3', color: 'white', marginRight: '5px', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                          onClick={() => handleViewElection(election.id)}
-                                      >
-                                        Xem
-                                      </button>
-
-                                      {user?.roles?.includes("ROLE_ORGANIZER") && (
-                                          <>
-                                            <button className="btn-edit" onClick={() => handleEditClick(election)}>Sửa</button>
-                                            <button className="btn-delete" onClick={() => handleDelete(election.id)}>Xóa</button>
-                                          </>
-                                      )}
-                                    </td>
+                            <div className="table-wrapper">
+                              <div className="table-wrapper">
+                                <table className="admin-table">
+                                  <thead>
+                                  <tr>
+                                    <th>STT</th>
+                                    <th>Tên cuộc bầu cử</th>
+                                    <th>Trạng thái</th>
+                                    <th style={{ textAlign: "center" }}>Hành động</th>
                                   </tr>
-                              ))}
-                              </tbody>
-                            </table>
+                                  </thead>
+                                  {/*  */}
+                                  <tbody>
+                                  {elections.map((election, index) => {
+                                    // Giữ log để bạn debug, nhưng không được để text lọt ra ngoài thẻ <td>
+                                    console.log(`Dòng ${index + 1}:`, election.status);
+
+                                    return (
+                                        <tr key={election.id}>
+                                          <td className={"election-id"}>{index + 1}</td>
+                                          <td className="election-name-cell">{election.title}</td>
+                                          {/* ✅ Gọi hàm render badge */}
+                                          <td className={"election-status"}>{renderStatusBadge(election.status)} </td>
+
+                                          <td className="action-cells">
+                                            <button className="btn-action btn-view" onClick={() => navigate(`/election-detail/${election.id}`)}>
+                                              Xem
+                                            </button>
+                                            {user?.roles?.includes("ROLE_ORGANIZER") && (
+                                                <>
+                                                  <button className="btn-action btn-edit" onClick={() => { setEditingElection(election); setSubView("create"); }}>
+                                                    Sửa
+                                                  </button>
+                                                  <button className="btn-action btn-delete" onClick={() => handleDelete(election.id)}>
+                                                    Xóa
+                                                  </button>
+                                                </>
+                                            )}
+                                          </td>
+                                        </tr>
+                                    );
+                                  })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
                         )}
                       </>
                   )}
@@ -144,21 +166,18 @@ const HostDashboard: React.FC = () => {
                 </div>
             ) : (
                 <div className="management-section">
-                    <h3>Danh sách cử tri</h3>
-                    <div className="section-header">
-                      <button className="btn-add">+ Thêm cử tri</button>
-                    </div>
-                    <table className="admin-table">
-                      <thead>
-                      <tr><th>STT</th><th>Họ và Tên</th><th>Email</th><th>Hành động</th></tr>
-                      </thead>
-                      <tbody>
-                      <tr><td colSpan={4} style={{ textAlign: 'center' }}>Chưa có dữ liệu cử tri</td></tr>
-                      </tbody>
-                    </table>
+                  <h3 className="section-title">Danh sách cử tri</h3>
+                  <table className="admin-table">
+                    <thead>
+                    <tr><th>STT</th><th>Họ và Tên</th><th>Email</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr><td colSpan={3} style={{ textAlign: 'center', padding: '40px' }}>Chưa có dữ liệu cử tri</td></tr>
+                    </tbody>
+                  </table>
                 </div>
             )}
-          </div>
+          </section>
         </main>
       </div>
   );

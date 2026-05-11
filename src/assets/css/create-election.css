@@ -221,6 +221,7 @@
     color: #64748b;
     margin-bottom: 5px;
     display: block;
+    text-align: left;
 }
 
 .candidate-fields input,
@@ -403,4 +404,32 @@
 .candidate-fields .input-group input:hover,
 .candidate-fields .input-group textarea:hover {
     border-color: #94a3b8;
+}
+.status-preview-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    width: fit-content;
+}
+
+/* Màu sắc tương ứng từng trạng thái */
+.status-preview-badge.đang-diễn-ra {
+    background: #ecfdf5;
+    color: #10b981;
+    border: 1px solid #10b981;
+}
+
+.status-preview-badge.sắp-diễn- ra {
+    background: #fff7ed;
+    color: #ff7a00;
+    border: 1px solid #ff7a00;
+}
+
+.status-preview-badge.đã-kết-thúc {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #64748b;
 }

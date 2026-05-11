@@ -92,6 +92,18 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
             setPreviewUrl(URL.createObjectURL(file));
         }
     };
+    // xác định thời gian đóng mở ,sắp mở của cuộc bầu cử
+    const getLiveStatus = (start: string, end: string) => {
+        if (!start || !end) return "N/A";
+        const now = new Date();
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+
+        if (now < startDate) return "SẮP DIỄN RA";
+        if (now > endDate) return "ĐÃ KẾT THÚC";
+        return "ĐANG DIỄN RA";
+    };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -164,6 +176,12 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
                             <div className="form-group" style={{flex:1}}>
                                 <label>Ngày kết thúc</label>
                                 <input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Dự kiến trạng thái:</label>
+                            <div className={`status-preview-badge ${getLiveStatus(startTime, endTime).replace(/\s+/g, '-').toLowerCase()}`}>
+                                {getLiveStatus(startTime, endTime)}
                             </div>
                         </div>
                         <div className="form-group">

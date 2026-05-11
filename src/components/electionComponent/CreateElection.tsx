@@ -28,12 +28,11 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const formatDateTime = (dt) => dt.length === 16 ? `${dt}:00` : dt;
+
     useEffect(() => {
         if (editData) {
             setTitle(editData.title || "");
             setDescription(editData.description || "");
-            // Format datetime-local yêu cầu chuỗi yyyy-MM-ddThh:mm
             setStartTime(editData.startDate?.substring(0, 16) || "");
             setEndTime(editData.endDate?.substring(0, 16) || "");
             setPreviewUrl(editData.image || null);
@@ -44,13 +43,12 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
                     name: c.name || "",
                     description: c.description || "",
                     imageUrl: c.imageUrl || "",
-                    preview: c.imageUrl || "" // Gán URL cũ vào preview để hiển thị ngay
+                    preview: c.imageUrl || ""
                 })));
             } else {
                 setCandidates([{ name: "", description: "" }]);
             }
         } else {
-            // Reset form nếu không phải mode edit
             setCandidates([{ name: "", description: "" }]);
         }
     }, [editData]);
@@ -63,7 +61,6 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
 
     const handleCandidateImage = (index: number, file: File) => {
         const newCandidates = [...candidates];
-        // Xóa URL cũ để tránh rò rỉ bộ nhớ
         if (newCandidates[index].preview && newCandidates[index].preview?.startsWith('blob:')) {
             URL.revokeObjectURL(newCandidates[index].preview!);
         }
@@ -71,9 +68,7 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
         newCandidates[index].preview = URL.createObjectURL(file);
         setCandidates(newCandidates);
     };
-
     const addCandidate = () => setCandidates([...candidates, { name: "", description: "" }]);
-
     const removeCandidate = (index: number) => {
         if (candidates.length > 1) {
             const candidateToRemove = candidates[index];
@@ -99,7 +94,6 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
         const now = new Date();
         const startDate = new Date(start);
         const endDate = new Date(end);
-
         if (now < startDate) return "SẮP DIỄN RA";
         if (now > endDate) return "ĐÃ KẾT THÚC";
         return "ĐANG DIỄN RA";
@@ -134,12 +128,8 @@ const CreateElection: React.FC<CreateElectionProps> = ({ editData, onComplete })
             }));
 
             if (editData?.roleId) {
-                // Nếu là đang sửa, giữ nguyên roleId của cuộc bầu cử đó
                 finalRoleId = editData.roleId;
             } else if (user?.roles) {
-                // Nếu tạo mới, lấy theo Role của người đang đăng nhập
-                // Kiểm tra nếu roles có chứa ADMIN hoặc ORGANIZER hoặc một logic phân loại của bạn
-                // Giả sử: Nếu user có role đặc biệt thì gán là 2, còn lại là 1
                 if (user.roles.includes("ROLE_ORGANIZER") || user.roleId === 3) {
                     finalRoleId = 3;
                 } else {

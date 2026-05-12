@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext.tsx";
 import electionApi from "../../api/electionApi.ts";
 import CreateElection from "../../components/electionComponent/CreateElection.tsx";
 import Swal from "sweetalert2";
+import userApi from "../../api/userApi.ts";
 interface Election {
   id: number;
   title: string;
@@ -23,7 +24,7 @@ const HostDashboard: React.FC = () => {
   const navigate = useNavigate();
 // Thêm state này vào đầu Component HostDashboard
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [voters, setVoters] = useState<any[]>([]);
 // Hàm xử lý lọc dữ liệu
   const filteredElections = elections.filter((election) =>
       election.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -64,7 +65,24 @@ const HostDashboard: React.FC = () => {
         return <span className="status-badge">{status}</span>;
     }
   };
+  const fetchVoters = async () => {
+    setLoading(true);
+    try {
+      const data = await userApi.getAll();
+      console.log("Dữ liệu cử tri nhận được:", data);
+      setVoters(data);
+    } catch (error) {
+      console.error("Lỗi lấy danh sách cử tri:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    if (activeTab === "voters") {
+      fetchVoters();
+    }
+  }, [activeTab]);
   const handleDelete = async (id: number) => {
     // 1. Hiển thị thông báo xác nhận nổi
     Swal.fire({
@@ -160,7 +178,7 @@ const HostDashboard: React.FC = () => {
                                 <table className="admin-table">
                                   <thead>
                                   <tr>
-                                    <th>STT</th>
+                                    <th >STT</th>
                                     <th>Tên cuộc bầu cử</th>
                                     <th>Trạng thái</th>
                                     <th style={{ textAlign: "center" }}>Hành động</th>
@@ -215,17 +233,47 @@ const HostDashboard: React.FC = () => {
                 </div>
             ) : (
                 <div className="management-section">
-                  <h3 className="section-title">Danh sách cử tri</h3>
-                  <table className="admin-table">
-                    <thead>
-                    <tr><th>STT</th><th>Họ và Tên</th><th>Email</th></tr>
-                    </thead>
-                    <tbody>
-                    <tr><td colSpan={3} style={{ textAlign: 'center', padding: '40px' }}>Chưa có dữ liệu cử tri</td></tr>
-                    </tbody>
-                  </table>
+                  {activeTab === "voters" && (
+                      <div className="management-section">
+                        <div className="section-header-flex">
+                          <h3 className="section-title">Danh sách cử tri hệ thống</h3>
+                          {/* Có thể thêm ô tìm kiếm cử tri ở đây */}
+                        </div>
+
+                        <table className="elections-table">
+                          <thead>
+                          <tr className={"table-header"}>
+                            <th>STT</th>
+                            <th>Họ và Tên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Vai Trò</th>
+                            <th>Thao tác</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                          {voters.map((voter, index) => (
+                              <tr key={voter.id}>
+                                <td className="election-id">{index + 1}</td>
+                                <td className="election-name-cell">{voter.fullName}</td>
+                                <td className="election-name-cell">{voter.email}</td>
+                                <td  className="election-phone-cell" >{voter.phone || "N/A"}</td>
+                                <td style={{ fontSize: '13px', color: '#64748b', fontWeight: '400' }}>
+                                  {voter.roleName || "N/A"}
+                                </td>
+                                <td className="action-cells">
+                                  <button className="btn-action btn-view">Chi tiết</button>
+                                  <button className="btn-action btn-delete">Khóa</button>
+                                </td>
+                              </tr>
+                          ))}
+                          </tbody>
+                        </table>
+                      </div>
+                  )}
                 </div>
             )}
+
           </section>
         </main>
       </div>

@@ -39,5 +39,10 @@ export const userApi = {
   // Gửi lại mã
   resendToken: (email: string) =>
       axiosClient.post('/auth/resend-token', { email }),
+  // Lấy danh sách tất cả người dùng
+  getAll: async (): Promise<never[]> => {
+    const response = await axiosClient.get('/api/elections/voter/all');
+    return response.data;
+  },
 };
 export default userApi;

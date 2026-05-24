@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import { electionApi } from "../api/electionApi"; // ✅ Import đúng đối tượng
+import { electionApi } from "../api/electionApi";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import "../assets/css/elections.css";
 
 const Elections = () => {
   const [elections, setElections] = useState<any[]>([]);
-  const [filter, setFilter] = useState("OPEN");
+  const [filter, setFilter] = useState("OPEN"); // Mặc định hiển thị cuộc bầu cử đang mở
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
-    electionApi.getAll() // ✅ Gọi đúng hàm getAll()
+    electionApi.getAll()
     .then((res) => {
       setElections(res.data);
     })
@@ -20,7 +20,18 @@ const Elections = () => {
     .finally(() => setLoading(false));
   }, []);
 
+  // Logic lọc dữ liệu dựa trên trạng thái
   const filteredElections = elections.filter((e) => e.status === filter);
+
+  // Hàm helper để hiển thị text trạng thái thân thiện hơn
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "OPEN": return "Đang mở";
+      case "UPCOMING": return "Sắp diễn ra";
+      case "CLOSED": return "Đã đóng";
+      default: return status;
+    }
+  };
 
   if (loading) return <div className="loading">Đang tải danh sách bầu cử...</div>;
 
@@ -28,25 +39,62 @@ const Elections = () => {
       <div className="elections-container">
         <header className="elections-header">
           <h1>Danh Sách Bầu Cử</h1>
-          <div className="filter-tabs">
-            <button className={filter === "OPEN" ? "active" : ""} onClick={() => setFilter("OPEN")}>Đang diễn ra</button>
-            <button className={filter === "CLOSED" ? "active" : ""} onClick={() => setFilter("CLOSED")}>Đã kết thúc</button>
+          <div className="header-line"></div>
+
+          <div className="filter-bar">
+            {/* Thêm nút Sắp diễn ra */}
+            <button
+                className={filter === "UPCOMING" ? "active" : ""}
+                onClick={() => setFilter("UPCOMING")}
+            >
+              Sắp diễn ra
+            </button>
+            <button
+                className={filter === "OPEN" ? "active" : ""}
+                onClick={() => setFilter("OPEN")}
+            >
+              Đang diễn ra
+            </button>
+            <button
+                className={filter === "CLOSED" ? "active" : ""}
+                onClick={() => setFilter("CLOSED")}
+            >
+              Đã kết thúc
+            </button>
           </div>
         </header>
 
-        <div className="elections-grid">
+        <div className="election-grid">
           {filteredElections.length > 0 ? (
               filteredElections.map((election) => (
                   <motion.div key={election.id} className="election-card" whileHover={{ scale: 1.02 }}>
+                    <div className="card-image">
+                      <img src={election.image || 'https://via.placeholder.com/400x200'} alt={election.title} />
+                      {/* Class động cho badge để đổi màu theo trạng thái */}
+                      <span className={`status-badge badge-${election.status.toLowerCase()}`}>
+                            {getStatusText(election.status)}
+                      </span>
+                    </div>
                     <div className="card-body">
                       <h3>{election.title}</h3>
                       <p>{election.description}</p>
-                      <button onClick={() => navigate(`/candidates?electionId=${election.id}`)}>Tham gia</button>
+                    </div>
+                    <div className="card-footer">
+                      <button
+                          className="action-btn"
+                          disabled={election.status !== "OPEN"} // Vô hiệu hóa nút nếu chưa đến giờ bầu
+                          onClick={() => navigate(`/candidates?electionId=${election.id}`)}
+                          style={election.status !== "OPEN" ? { filter: 'grayscale(1)', cursor: 'not-allowed' } : {}}
+                      >
+                        {election.status === "UPCOMING" ? "Chưa bắt đầu" : "Tham gia bầu cử"}
+                      </button>
                     </div>
                   </motion.div>
               ))
           ) : (
-              <div className="no-data">Không có cuộc bầu cử nào phù hợp.</div>
+              <div className="no-data" style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px' }}>
+                Không có cuộc bầu cử nào {getStatusText(filter).toLowerCase()}.
+              </div>
           )}
         </div>
       </div>

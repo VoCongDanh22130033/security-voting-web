@@ -41,6 +41,7 @@ function App() {
                             <Route path="/elections" element={<Elections/>}/>
                             <Route path="/election-detail/:id" element={<ElectionDetail />} />
                             <Route path="/candidates" element={<Candidates />} />
+                            <Route path="/candidates/:id" element={<Candidates />} />
                             <Route path="/results" element={<Results />} />
                         </Route>
 

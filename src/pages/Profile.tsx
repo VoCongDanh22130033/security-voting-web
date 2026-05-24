@@ -123,10 +123,8 @@ const Profile: React.FC = () => {
             <main className="profile-main">
                 <div className="profile-card">
 
-                    {/* HEADER HIỂN THỊ TRỰC TIẾP AVATAR TỪ CLOUDINARY */}
                     <div className="profile-header">
                         <div className="avatar-circle">
-                            {/* SỬA TẠI ĐÂY: Kiểm tra cả user.imageUrl */}
                             {(profile.user?.imageUrl || profile.user?.image_url || profile.imageUrl || profile.image_url) ? (
                                 <img
                                     src={profile.user?.imageUrl || profile.user?.image_url || profile.imageUrl || profile.image_url}
@@ -142,13 +140,10 @@ const Profile: React.FC = () => {
 
                         <div>
                             <h2>{profile.fullName}</h2>
-                            {/*<p className="role-badge">*/}
-                            {/*    {profile.user?.roles?.[0]?.name?.replace("ROLE_", "")}*/}
-                            {/*</p>*/}
+
                         </div>
                     </div>
 
-                    {/* TABS CONTROL */}
                     <div className="profile-tabs">
                         <button className={activeTab === "info" ? "tab active" : "tab"} onClick={() => setActiveTab("info")}>Thông tin</button>
                         <button className={activeTab === "edit" ? "tab active" : "tab"} onClick={() => setActiveTab("edit")}>Chỉnh sửa</button>
@@ -157,7 +152,7 @@ const Profile: React.FC = () => {
 
                     <div className="profile-content">
 
-                        {/* TAB HIỂN THỊ THÔNG TIN */}
+
                         {activeTab === "info" && (
                             <div className="info-section">
                                 <h3>Thông tin tài khoản</h3>
@@ -172,14 +167,13 @@ const Profile: React.FC = () => {
                             </div>
                         )}
 
-                        {/* TAB CHỈNH SỬA (Đã bổ sung khu vực chọn ảnh đại diện mới) */}
+
                         {activeTab === "edit" && (
                             <div className="edit-section">
                                 <h3>Chỉnh sửa hồ sơ</h3>
 
                                 <div className="edit-form">
 
-                                    {/* KHU VỰC THAO TÁC CHỌN ẢNH ĐẠI DIỆN MỚI */}
                                     <div className="avatar-upload-container">
                                         <div
                                             className="avatar-edit-preview"
@@ -198,7 +192,6 @@ const Profile: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {/* Input File ẩn đi để custom giao diện đẹp hơn */}
                                         <input
                                             type="file"
                                             ref={fileInputRef}
@@ -209,7 +202,7 @@ const Profile: React.FC = () => {
                                         />
                                     </div>
 
-                                    {/* CÁC TRƯỜNG NHẬP LIỆU TEXT */}
+
                                     <div className="form-group">
                                         <label>Email</label>
                                         <input
@@ -239,15 +232,112 @@ const Profile: React.FC = () => {
                             </div>
                         )}
 
-                        {/* TAB ĐỔI MẬT KHẨU */}
                         {activeTab === "password" && (
                             <div className="password-section">
-                                <h3>Đổi mật khẩu</h3>
+
+
                                 <div className="password-form">
-                                    <div className="form-group"><label>Mật khẩu hiện tại</label><input type="password" /></div>
-                                    <div className="form-group"><label>Mật khẩu mới</label><input type="password" /></div>
-                                    <div className="form-group"><label>Xác nhận</label><input type="password" /></div>
-                                    <div className="action-section"><button className="change-password-btn">Cập nhật mật khẩu</button></div>
+                                    <p style={{ fontSize: '13px', color: '#666', textAlign: 'center', marginBottom: '15px' }}>
+                                    </p>
+
+
+                                    <div className="action-section" style={{ marginTop: '0', marginBottom: '20px' }}>
+                                        <button
+                                            type="button"
+                                            className="logout-btn"
+                                            style={{ width: '100%', padding: '10px', borderRadius: '8px',  }}
+                                            onClick={async () => {
+                                                try {
+                                                    const targetEmail = profile.user?.email || profile.email;
+                                                    if (!targetEmail) {
+                                                        Swal.fire("Lỗi", "Không tìm thấy email tài khoản của bạn!", "error");
+                                                        return;
+                                                    }
+
+                                                    // Hiển thị loading thầm lặng trong lúc đợi gửi email
+                                                    Swal.fire({
+                                                        title: "Đang gửi mã OTP...",
+                                                        text: "Vui lòng đợi trong giây lát",
+                                                        allowOutsideClick: false,
+                                                        didOpen: () => {
+                                                            Swal.showLoading();
+                                                        }
+                                                    });
+
+                                                    console.log(">>> [FE] Yêu cầu OTP cho email:", targetEmail);
+                                                    await userApi.forgotPassword(targetEmail);
+
+                                                    // Thông báo nổi thành công
+                                                    Swal.fire("Đã gửi!", "Mã OTP đã được gửi thành công vào Gmail của bạn.", "success");
+                                                } catch (err: any) {
+                                                    console.error(err);
+                                                    Swal.fire("Thất bại", err.response?.data || "Không thể gửi OTP, vui lòng thử lại!", "error");
+                                                }
+                                            }}
+                                        >
+                                            Bấm vào đây để nhận mã OTP qua Email
+                                        </button>
+                                    </div>
+
+
+                                    <form onSubmit={async (e) => {
+                                        e.preventDefault();
+                                        const targetEmail = profile.user?.email || profile.email;
+                                        const otpInput = (e.currentTarget.elements.namedItem("otpCode") as HTMLInputElement).value;
+                                        const newPassInput = (e.currentTarget.elements.namedItem("newPassword") as HTMLInputElement).value;
+                                        const confirmPassInput = (e.currentTarget.elements.namedItem("confirmPassword") as HTMLInputElement).value;
+
+                                        if (newPassInput !== confirmPassInput) {
+                                            Swal.fire("Cảnh báo", "Mật khẩu xác nhận không trùng khớp!", "warning");
+                                            return;
+                                        }
+
+                                        // Hiển thị loading lúc xử lý lưu pass mới
+                                        Swal.fire({
+                                            title: "Đang xử lý...",
+                                            text: "Vui lòng đợi hệ thống cập nhật",
+                                            allowOutsideClick: false,
+                                            didOpen: () => {
+                                                Swal.showLoading();
+                                            }
+                                        });
+
+                                        try {
+                                            await userApi.resetPasswordWithOtp({
+                                                email: targetEmail,
+                                                otpCode: otpInput,
+                                                newPassword: newPassInput
+                                            });
+
+                                            // Thông báo nổi thành công hoàn tất
+                                            await Swal.fire("Thành công!", "Chúc mừng! Mật khẩu của bạn đã đổi thành công.", "success");
+                                            setActiveTab("info"); // Quay lại tab chính
+                                        } catch (err: any) {
+                                            console.error(err);
+                                            Swal.fire("Thất bại", err.response?.data || "Mã OTP sai hoặc đã hết hạn sử dụng!", "error");
+                                        }
+                                    }} className="edit-form">
+                                        <div className="form-group">
+                                            <label>Nhập mã OTP (6 số)</label>
+                                            <input name="otpCode" type="text" required maxLength={6} placeholder="Nhập mã xác nhận từ email" />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Mật khẩu mới</label>
+                                            <input name="newPassword" type="password" required placeholder="Nhập mật khẩu mới" />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Xác nhận mật khẩu mới</label>
+                                            <input name="confirmPassword" type="password" required placeholder="Nhập lại mật khẩu mới" />
+                                        </div>
+
+                                        <div className="action-section" style={{ marginTop: '25px' }}>
+                                            <button type="submit" className="change-password-btn" style={{ width: '100%', padding: '12px' }}>
+                                                Xác nhận thay đổi mật khẩu
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         )}

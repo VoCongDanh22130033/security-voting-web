@@ -10,7 +10,7 @@
 .elections-container {
     min-height: 100vh;
     padding: 100px 20px 60px;
-    background: #f8fafc; /* Màu nền nhẹ nhàng */
+    background: #f8fafc;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -23,7 +23,7 @@
 }
 
 .elections-header h1 {
-    font-size: 32px; /* Nhỏ hơn, thanh thoát hơn */
+    font-size: 32px;
     font-weight: 400;
     color: #1e293b;
 }
@@ -121,7 +121,7 @@
     font-size: 17px;
     margin-bottom: 10px;
     color: #1e293b;
-    font-weight: 500; /* Không in đậm thô */
+    font-weight: 500;
 }
 
 .card-body p {
@@ -161,15 +161,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 20px; /* Giảm bớt khoảng cách dưới cho gọn */
+    margin-bottom: 20px;
 }
 
 .avatar-edit-preview {
     position: relative;
-    width: 80px;  /* Thu nhỏ từ 120px xuống 80px */
-    height: 80px; /* Thu nhỏ từ 120px xuống 80px */
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    border: 2px solid #ff6b6b; /* Giảm độ dày viền xuống 2px cho thanh thoát */
+    border: 2px solid #ff6b6b;
     overflow: hidden;
     cursor: pointer;
     background: #e9ecef;

@@ -98,7 +98,6 @@ const Candidates = () => {
 
   return (
       <div className="candidates-container">
-        {/* Tiêu đề nằm trên cùng */}
         <motion.h2
             className="page-title"
             style={{ fontSize: '40px', fontWeight: '800', color: '#333', marginBottom: '20px', zIndex: 2 }}
@@ -150,7 +149,6 @@ const Candidates = () => {
           </div>
         </div>
 
-        {/* Nút quay lại và Xem kết quả chuyển xuống dưới cùng */}
         <div className="footer-actions-candidates">
           <button className="btn-back-bottom" onClick={() => navigate(-1)}>
             Quay lại trang trước

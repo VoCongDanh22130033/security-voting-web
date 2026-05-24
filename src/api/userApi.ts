@@ -25,10 +25,6 @@ export const userApi = {
     return response.data;
   },
 
-  // Quên mật khẩu
-  forgotPassword: (email: string) =>
-      axiosClient.post('/voter/forgot-password', { email }),
-
   // Đặt lại mật khẩu
   resetPassword: (data: never) =>
       axiosClient.post('/voter/reset-password', data),
@@ -44,5 +40,12 @@ export const userApi = {
     const response = await axiosClient.get('/api/elections/voter/all');
     return response.data;
   },
+  // Gửi email xin OTP
+  forgotPassword: (email: string) =>
+      axiosClient.post('/voter/forgot-password', { email }),
+
+  // Gửi OTP + pass mới để cập nhật
+  resetPasswordWithOtp: (data: { email: string; otpCode: string; newPassword: string }) =>
+      axiosClient.post('/voter/reset-password-otp', data),
 };
 export default userApi;

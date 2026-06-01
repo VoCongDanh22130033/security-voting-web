@@ -2,27 +2,27 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../assets/css/login.css";
-import userApi from "../api/userApi.ts";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [localError, setLocalError] = useState<string>("");
   const navigate = useNavigate();
-  const { login, isLoading, error } = useAuth();
+  const { login, isLoading, error, clearError } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError("");
+    clearError(); // Xóa lỗi cũ lưu trên Context nếu có
 
     try {
-      // Thay vì gọi qua hàm login của Context, gọi trực tiếp API để lấy trọn vẹn lỗi từ Server
-      const savedUser = await userApi.login({ email, password });
+      // 1. Thực hiện đăng nhập qua Context để đồng bộ dữ liệu người dùng toàn hệ thống
+      await login(email, password);
 
-      // Lưu vào localStorage thủ công giống như Context đang làm[cite: 9]
-      localStorage.setItem("user", JSON.stringify(savedUser));
+      // 2. Lấy thông tin phiên làm việc vừa được Context lưu vào localStorage để phân quyền
+      const savedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-      // Điều hướng phân quyền như cũ[cite: 9]
+      // 3. Kiểm tra phân quyền và điều hướng trang
       if (savedUser.roles && savedUser.roles.includes("ROLE_ORGANIZER")) {
         navigate("/host-dashboard");
       } else if (savedUser.roles && savedUser.roles.includes("ROLE_ADMIN")) {
@@ -31,11 +31,12 @@ const Login: React.FC = () => {
         navigate("/home");
       }
     } catch (err: any) {
-      // Tại đây, bạn chắc chắn sẽ lấy được chuỗi "Tài khoản của bạn đã bị khóa..." từ Backend
-      const errorMessage = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : "") || "Email hoặc mật khẩu không chính xác";
+      // 4. Nếu tài khoản bị khóa hoặc sai thông tin, bắt lỗi truyền từ Context ra ngoài
+      const errorMessage = err.message || "Email hoặc mật khẩu không chính xác";
       setLocalError(errorMessage);
     }
   };
+
   return (
       <div className="login-container">
         <div className="login-box">

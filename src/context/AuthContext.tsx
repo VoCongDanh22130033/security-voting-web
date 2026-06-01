@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type {User} from "../types/auth";
-import { userApi } from "../api/userApi"; // ✅ Dùng named import đúng cách
+import { userApi } from "../api/userApi";
 
 interface AuthContextType {
   user: User | null;
@@ -58,9 +58,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(userData);
       setIsAuthenticated(true);
     } catch (err: any) {
-      const errorMessage = err?.response?.data?.message || err?.message || "Đăng nhập thất bại";
+      // SỬA TẠI ĐÂY: Đọc thêm trường hợp dữ liệu trả về trực tiếp dạng string từ Backend
+      const errorMessage =
+          err?.response?.data?.message ||
+          (typeof err?.response?.data === "string" ? err.response.data : "") ||
+          err?.message ||
+          "Đăng nhập thất bại";
+
       setError(errorMessage);
-      throw new Error(errorMessage);
+      throw new Error(errorMessage); // Ném lỗi ra ngoài để Login.tsx bắt được
     } finally {
       setIsLoading(false);
     }

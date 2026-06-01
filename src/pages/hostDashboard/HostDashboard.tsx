@@ -84,13 +84,11 @@ const HostDashboard: React.FC = () => {
     }
   }, [activeTab]);
 
-  // --- HÀM XỬ LÝ XEM CHI TIẾT CỬ TRI ---
   const handleViewVoterDetail = async (id: number) => {
     try {
       Swal.fire({ title: "Đang tải...", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
       const voterData = await userApi.getById(id);
-      // Đọc trạng thái từ thuộc tính user.isLock bên trong voterData
       const isAccountLocked = voterData.user?.isLock === 1;
 
       Swal.fire({

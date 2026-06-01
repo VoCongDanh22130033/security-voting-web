@@ -57,6 +57,33 @@ export const userApi = {
     const response = await axiosClient.post(`/voter/${id}/lock`);
     return response.data;
   },
+  // [SUPER_ADMIN] Khóa tài khoản
+  lockVoter: async (id: number): Promise<any> => {
+    const response = await axiosClient.post(`/voter/${id}/lock`);
+    return response.data;
+  },
+
+  // [SUPER_ADMIN] Mở khóa tài khoản
+  unlockVoter: async (id: number): Promise<any> => {
+    const response = await axiosClient.post(`/voter/${id}/unlock`);
+    return response.data;
+  },
+  createModerator: async (data: { fullName: string; email: string; password: string; phone: string }): Promise<any> => {
+    const token = localStorage.getItem("token");
+    const response = await axiosClient.post('/auth/admin/create-moderator', data, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  getAdminHosts: async (): Promise<any[]> => {
+    const response = await axiosClient.get('/voter/admin/hosts');
+    return response.data;
+  },
+
+  getAdminVoters: async (): Promise<any[]> => {
+    const response = await axiosClient.get('/voter/admin/voters');
+    return response.data;
+  },
 };
 
 

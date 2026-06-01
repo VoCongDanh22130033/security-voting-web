@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await userApi.login({ email, password });
 
       const userData: User = {
+        roleId: 0,
         id: response.id,
         fullName: response.fullName,
         email: response.email,

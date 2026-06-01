@@ -1,5 +1,29 @@
 import axiosClient from "./axiosClient";
+// Định nghĩa lại cấu hình thời gian vòng động
+export interface RoundTimeSetting {
+  roundNumber: number;
+  startTime: string;
+  endTime: string;
+  maxAdvanceCount: number;
+}
 
+// Định nghĩa cấu trúc ứng viên tự điền thủ công gửi kèm
+export interface NewCandidateInput {
+  name: string;
+  party?: string;
+  description?: string;
+  base64Image?: string;
+}
+
+// SỬA LẠI ĐỊNH NGHĨA REQUEST CHUẨN
+export interface CreateElectionRequest {
+  title: string;
+  description: string;
+  totalRounds: number;
+  roundsTimeSettings: RoundTimeSetting[]; // Thay thế 2 trường cũ thành mảng động này
+  candidateIds: number[];
+  newCandidates: NewCandidateInput[];
+}
 export const electionApi = {
   // Lấy danh sách cuộc bầu cử
   getAll: () => axiosClient.get('/api/elections'),
@@ -40,6 +64,22 @@ export const electionApi = {
       axiosClient.post('/api/crypto/sign', data),
   // Bỏ phiếu
   castVote: (voteData: any) => axiosClient.post('/api/votes/cast', voteData),
+  createMultiRound: async (data: CreateElectionRequest) => {
+    // Thay đổi endpoint URL tương ứng với Gateway hoặc Service của bạn
+    const response = await axiosClient.post('/api/elections/create', data);
+    return response.data;
+  },
+
+  // Hàm bổ sung phụ trợ lấy danh sách toàn bộ candidate để admin chọn gán vào Vòng 1
+  getAllCandidates: async () => {
+    const response = await axiosClient.get('/admin/candidates');
+    return response.data;
+  },
+
+  getRoundResults: (electionId: number, roundId: number) => {
+    return axiosClient.get(`/api/votes/results?electionId=${electionId}&roundId=${roundId}`);
+  }
+
 };
 
 export default electionApi;

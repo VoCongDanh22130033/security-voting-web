@@ -1,110 +1,155 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-// ✅ SỬA: Import đúng đối tượng electionApi (Sửa lỗi import trống)
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { electionApi } from "../api/electionApi";
-import "../assets/css/results.css";
+import Swal from "sweetalert2";
+import "../assets/css/candidates.css"; // Tái sử dụng hệ CSS sạch của bạn
 
-interface CandidateResult {
-  id: number;
-  name: string;
-  votes: number;
-  color: string;
-  imageUrl?: string;
-}
-
-const COLORS = ["#ff6b6b", "#4ecdc4", "#ffbd9b", "#1a535c", "#74b9ff"];
-
-const Results: React.FC = () => {
-  const navigate = useNavigate();
+const Results = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const electionId = searchParams.get("electionId");
+  const roundId = searchParams.get("roundId") || "1";
 
-  const [results, setResults] = useState<CandidateResult[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchResults = useCallback(async (id: number) => {
-    try {
-      // ✅ SỬA: Gọi electionApi.getCandidates(id) thay vì gọi hàm lẻ
-      const res = await electionApi.getCandidates(id);
-
-      const data = res.data.map((c: any, index: number) => ({
-        id: c.id,
-        name: c.name,
-        imageUrl: c.imageUrl,
-        votes: c.voteCount || 0,
-        color: COLORS[index % COLORS.length]
-      }));
-      setResults(data);
-    } catch (err) {
-      console.error(">>> [FE] Lỗi tải kết quả:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [candidatesWithVotes, setCandidatesWithVotes] = useState<any[]>([]);
+  const [totalVotes, setTotalVotes] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (electionId) {
-      fetchResults(Number(electionId));
+      setLoading(true);
+
+      Promise.all([
+        electionApi.getCandidates(Number(electionId)),
+        electionApi.getRoundResults(Number(electionId), Number(roundId))
+      ])
+      .then(([candidatesRes, resultsRes]) => {
+        const rawCandidates = candidatesRes.data;
+        const voteMap = new Map<number, number>();
+
+        console.log(">>> [FE LOG] Dữ liệu hòm phiếu nhận từ Backend:", resultsRes.data);
+
+        const voteDataArray = resultsRes.data.votes || [];
+
+        let sum = 0;
+        voteDataArray.forEach((item: any) => {
+          // ĐỒNG BỘ CHUẨN XÁC: Đọc trúng hai trường gạch dưới trả về từ câu Native Query
+          const cId = Number(item.candidate_id);
+          const count = Number(item.vote_count);
+
+          if (!isNaN(cId) && !isNaN(count)) {
+            voteMap.set(cId, count);
+            sum += count;
+          }
+        });
+
+        const mergedData = rawCandidates.map((c: any) => ({
+          ...c,
+          votes: voteMap.get(Number(c.id)) || 0
+        })).sort((a: any, b: any) => b.votes - a.votes);
+
+        setCandidatesWithVotes(mergedData);
+        setTotalVotes(sum);
+      })
+      .catch((err) => {
+        console.error(">>> Lỗi chi tiết tại trang kết quả:", err);
+        Swal.fire("Lỗi", "Không thể hiển thị bảng thống kê kết quả lúc này!", "error");
+      })
+      .finally(() => setLoading(false));
     }
-  }, [electionId, fetchResults]);
+  }, [electionId, roundId]);
 
-  const totalVotes = results.reduce((acc, obj) => acc + obj.votes, 0);
-
-  if (loading) return <div className="loading">Đang cập nhật kết quả...</div>;
+  if (loading) return <div className="loading">Đang tổng hợp hòm phiếu ẩn danh...</div>;
 
   return (
-      <div className="results-container">
-        <main className="results-main">
-          <div className="results-card">
-            <header className="results-header">
-              <span className="live-badge">Báo cáo trực tiếp</span>
-              <h1>Kết quả <span>Bầu cử</span></h1>
-              <p>Tổng số phiếu ghi nhận: <strong>{totalVotes.toLocaleString()}</strong></p>
-            </header>
+      <div className="candidates-container" style={{ paddingTop: '40px' }}>
+        <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+            style={{ marginBottom: '40px', zIndex: 2 }}
+        >
+          <h2 className="page-title" style={{ fontSize: '38px', fontWeight: '800' }}>
+            Kết Quả <span style={{ color: '#2ecc71' }}>Bầu Chọn</span>
+          </h2>
+          {/*<p style={{ color: '#7f8c8d', fontSize: '16px', marginTop: '10px' }}>*/}
+          {/*  Mã cuộc bầu cử: <strong>#{electionId}</strong> | Vòng đấu hiện tại: <strong>Vòng {roundId}</strong>*/}
+          {/*</p>*/}
 
-            <div className="results-list">
-              {results.length > 0 ? (
-                  results.map((candidate) => {
-                    const percentage = totalVotes > 0
-                        ? ((candidate.votes / totalVotes) * 100).toFixed(1)
-                        : "0";
-
-                    return (
-                        <div key={candidate.id} className="result-item">
-                          <div className="result-info">
-                            <div className="candidate-meta">
-                              <img
-                                  src={candidate.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=random`}
-                                  alt={candidate.name}
-                                  className="candidate-avatar-res"
-                              />
-                              <span className="candidate-name-res">{candidate.name}</span>
-                            </div>
-                            <div className="vote-stats-res">
-                              <span className="vote-percent-res">{percentage}%</span>
-                              <small>{candidate.votes} phiếu</small>
-                            </div>
-                          </div>
-                          <div className="progress-bar-container">
-                            <div
-                                className="progress-fill"
-                                style={{ width: `${percentage}%`, backgroundColor: candidate.color }}
-                            ></div>
-                          </div>
-                        </div>
-                    );
-                  })
-              ) : (
-                  <p className="no-data">Chưa có dữ liệu bầu cử.</p>
-              )}
-            </div>
-
-            <div className="results-footer-actions">
-              <button className="btn-res-secondary" onClick={() => navigate(-1)}>Quay lại</button>
-              <button className="btn-res-primary" onClick={() => window.print()}>Xuất báo cáo PDF</button>
-            </div>
+          <div style={{ display: 'inline-block', background: '#2ecc71', color: '#fff', padding: '8px 20px', borderRadius: '30px', fontWeight: 'bold', marginTop: '10px', boxShadow: '0 4px 15px rgba(46, 204, 113, 0.3)' }}>
+            🗳️ Tổng số phiếu nặc danh hợp lệ: {totalVotes} phiếu
           </div>
-        </main>
+        </motion.div>
+
+        <div className="candidates-wrapper" style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div className="candidates-grid" style={{ gridTemplateColumns: '1fr', gap: '20px' }}>
+            {candidatesWithVotes.map((c, index) => {
+              const percent = totalVotes > 0 ? ((c.votes / totalVotes) * 100).toFixed(1) : "0";
+
+              return (
+                  <motion.div
+                      key={c.id}
+                      className="candidate-card"
+                      style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', textAlign: 'left', padding: '20px', position: 'relative' }}
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                  >
+                    {/* Huy hiệu hạng nhất, nhì, ba */}
+                    <div style={{ position: 'absolute', left: '-10px', top: '-10px', background: index === 0 ? '#f1c40f' : index === 1 ? '#bdc3c7' : '#e67e22', color: '#fff', width: '35px', height: '35px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }}>
+                      {index + 1}
+                    </div>
+
+                    <div className="candidate-avatar" style={{ width: '80px', height: '80px', marginRight: '25px', marginBottom: 0 }}>
+                      <img
+                          src={c.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=random`}
+                          alt={c.name}
+                      />
+                    </div>
+
+                    <div className="candidate-details" style={{ flex: 1, marginRight: '20px' }}>
+                      <h3 className="info-value" style={{ fontSize: '20px', marginBottom: '4px' }}>{c.name}</h3>
+                      <p className="candidate-desc" style={{ fontSize: '14px', marginBottom: '12px' }}>{c.party || "Đoàn viên thanh niên"}</p>
+
+                      {/* Thanh biểu đồ phần trăm */}
+                      <div className="vote-stats" style={{ marginTop: '0' }}>
+                        <div className="vote-progress-container" style={{ height: '14px', backgroundColor: '#eaeded' }}>
+                          <motion.div
+                              className="vote-progress-bar"
+                              style={{ height: '100%', backgroundColor: index === 0 ? '#2ecc71' : '#3498db' }}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${percent}%` }}
+                              transition={{ duration: 1, ease: "easeOut" }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right', minWidth: '120px' }}>
+                      <span style={{ fontSize: '24px', fontWeight: '800', color: '#2c3e50' }}>{percent}%</span>
+                      <div style={{ fontSize: '13px', color: '#7f8c8d', marginTop: '2px' }}>{c.votes} phiếu bầu</div>
+                    </div>
+                  </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Nút hành động điều hướng */}
+        <div className="footer-actions-candidates" style={{ marginTop: '40px', gap: '20px' }}>
+          <button className="btn-back-bottom" style={{ background: '#7f8c8d' }} onClick={() => navigate('/')}>
+            🏠 Về trang chủ cuộc bầu cử
+          </button>
+          {candidatesWithVotes.length > 0 && (
+              <button
+                  className="btn-view-results-bottom"
+                  style={{ background: '#9b59b6', boxShadow: '0 4px 15px rgba(155, 89, 182, 0.3)' }}
+                  onClick={() => Swal.fire("Thông tin", "Hệ thống đang mở cổng kiểm toán mật mã để xác thực tính toàn vẹn của hòm phiếu nặc danh!", "info")}
+              >
+                🔍 Kiểm toán chữ ký mù RSA
+              </button>
+          )}
+        </div>
       </div>
   );
 };

@@ -28,7 +28,7 @@ const Elections = () => {
     switch (status) {
       case "OPEN": return "Đang mở";
       case "UPCOMING": return "Sắp diễn ra";
-      case "CLOSED": return "Đã đóng";
+      case "ENDED": return "Đã đóng";
       default: return status;
     }
   };
@@ -56,8 +56,8 @@ const Elections = () => {
               Đang diễn ra
             </button>
             <button
-                className={filter === "CLOSED" ? "active" : ""}
-                onClick={() => setFilter("CLOSED")}
+                className={filter === "ENDED" ? "active" : ""}
+                onClick={() => setFilter("ENDED")}
             >
               Đã kết thúc
             </button>
@@ -80,14 +80,23 @@ const Elections = () => {
                       <p>{election.description}</p>
                     </div>
                     <div className="card-footer">
-                      <button
-                          className="action-btn"
-                          disabled={election.status !== "OPEN"} // Vô hiệu hóa nút nếu chưa đến giờ bầu
-                          onClick={() => navigate(`/candidates?electionId=${election.id}`)}
-                          style={election.status !== "OPEN" ? { filter: 'grayscale(1)', cursor: 'not-allowed' } : {}}
-                      >
-                        {election.status === "UPCOMING" ? "Chưa bắt đầu" : "Tham gia bầu cử"}
-                      </button>
+                      {/* LOGIC ĐỘNG: Nếu kết thúc thì xem kết quả, nếu không thì giữ nút bầu cử gốc */}
+                      {election.status && (election.status.toUpperCase().trim() === "ENDED" || election.status.toUpperCase().trim() === "CLOSED") ? (
+                          <button
+                              className="action-btn"
+                              onClick={() => navigate(`/results?electionId=${election.id}&roundId=1`)}
+                          >
+                            Xem kết quả
+                          </button>
+                      ) : (
+                          <button
+                              className="action-btn"
+                              disabled={election.status !== "OPEN"} // Vô hiệu hóa nút nếu chưa đến giờ bầu
+                              onClick={() => navigate(`/candidates?electionId=${election.id}`)}
+                          >
+                            {election.status === "UPCOMING" ? "Chưa bắt đầu" : "Tham gia bầu cử"}
+                          </button>
+                      )}
                     </div>
                   </motion.div>
               ))

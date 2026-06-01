@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../assets/css/login.css";
+import userApi from "../api/userApi.ts";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
@@ -15,26 +16,23 @@ const Login: React.FC = () => {
     setLocalError("");
 
     try {
-      // 1. Thực hiện đăng nhập
-      await login(email, password);
+      // Thay vì gọi qua hàm login của Context, gọi trực tiếp API để lấy trọn vẹn lỗi từ Server
+      const savedUser = await userApi.login({ email, password });
 
-      // 2. Lấy thông tin user vừa được lưu vào localStorage
-      const savedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      // Lưu vào localStorage thủ công giống như Context đang làm[cite: 9]
+      localStorage.setItem("user", JSON.stringify(savedUser));
 
-      // 3. Kiểm tra quyền ROLE_ORGANIZER trong mảng roles
+      // Điều hướng phân quyền như cũ[cite: 9]
       if (savedUser.roles && savedUser.roles.includes("ROLE_ORGANIZER")) {
         navigate("/host-dashboard");
-      } else if (
-          savedUser.roles &&
-          savedUser.roles.includes("ROLE_ADMIN")
-      ) {
+      } else if (savedUser.roles && savedUser.roles.includes("ROLE_ADMIN")) {
         navigate("/admin");
-      }
-      else  {
+      } else {
         navigate("/home");
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Email hoặc mật khẩu không chính xác";
+      // Tại đây, bạn chắc chắn sẽ lấy được chuỗi "Tài khoản của bạn đã bị khóa..." từ Backend
+      const errorMessage = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : "") || "Email hoặc mật khẩu không chính xác";
       setLocalError(errorMessage);
     }
   };

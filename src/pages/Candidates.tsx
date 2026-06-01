@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { electionApi } from "../api/electionApi";
+import { cryptoApi } from "../api/cryptoApi";
 import axiosClient from "../api/axiosClient";
 import Swal from "sweetalert2";
 import bigInt from "big-integer";
@@ -11,16 +12,19 @@ const Candidates = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const electionId = searchParams.get("electionId");
+  const roundId = searchParams.get("roundId") || "1";
+
   const [candidates, setCandidates] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const GATEWAY_URL = 'http://localhost:8080';
 
   useEffect(() => {
     if (electionId) {
       setLoading(true);
       electionApi.getCandidates(Number(electionId))
       .then((res) => {
-
         const data = res.data.map((c: any) => ({ ...c, votes: c.voteCount || 0 }));
         setCandidates(data);
       })
@@ -37,7 +41,7 @@ const Candidates = () => {
   const handleVote = async (candidateId: number, candidateName: string) => {
     const result = await Swal.fire({
       title: "Xác nhận bỏ phiếu",
-      text: `Bạn có chắc chắn muốn bầu cho: ${candidateName}?`,
+      text: `Bạn có chắc chắn muốn bầu cho: ${candidateName}? Lá phiếu của bạn sẽ được làm mù nặc danh hoàn toàn!`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Xác nhận",
@@ -46,48 +50,119 @@ const Candidates = () => {
 
     if (result.isConfirmed) {
       setIsSubmitting(true);
+      Swal.fire({
+        title: 'Đang xử lý mật mã...',
+        text: 'Hệ thống đang tiến hành làm mù dữ liệu và xin chữ ký số bảo mật...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
 
       try {
-        const pkRes = await axiosClient.get("/api/crypto/public-key");
+        console.log("=== [LOG CHẨN ĐOÁN] BẮT ĐẦU QUY TRÌNH KÝ MÙ ===");
+
+        // BƯỚC 1: Lấy khóa công khai RSA hệ thống thông qua API Gateway
+        const pkRes = await axiosClient.get(`${GATEWAY_URL}/api/crypto/public-key`);
         const N = bigInt(pkRes.data.modulus, 16);
         const E = bigInt(pkRes.data.exponent, 16);
-        const m = bigInt(candidateId);
 
+        // BƯỚC 2: Khởi tạo nội dung thông điệp gốc M
+        // Tạo chuỗi Nonce ngẫu nhiên siêu dài bọc kèm ID ứng viên để tránh chuỗi token ngắn gây sập hàm băm Backend
+        // BƯỚC 2: Khởi tạo nội dung thông điệp gốc M
+        // Tạo chuỗi Nonce ngẫu nhiên siêu dài bọc kèm ID ứng viên để tránh trùng lặp
+        const randomNonce = Math.floor(Math.random() * 1000000).toString();
+        const rawMessageStr = `candidateId=${candidateId}&nonce=${randomNonce}`;
+
+        // CHỈNH SỬA TẠI ĐÂY: Thay thế Buffer lỗi bằng TextEncoder thuần trình duyệt
+        const encoder = new TextEncoder();
+        const view = encoder.encode(rawMessageStr);
+        const messageHexStr = Array.from(view)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+        const M = bigInt(messageHexStr, 16);
+
+        // Sinh số ngẫu nhiên r làm mù thỏa mãn điều kiện gcd(r, N) = 1
         let r;
         do {
           r = bigInt.randBetween(bigInt(2), N.prev());
         } while (bigInt.gcd(r, N).notEquals(1));
 
-        const blindedMessageBI = m.multiply(r.modPow(E, N)).mod(N);
-        const blindedMessageHex = blindedMessageBI.toString(16);
-        const blindedMessageBase64 = btoa(blindedMessageHex);
+        // Thực hiện công thức làm mù mật mã học: M' = (M * r^E) mod N
+        const blindedMessageBI = M.multiply(r.modPow(E, N)).mod(N);
+        const blindedMessageHex = blindedMessageBI.toString(16).trim().toLowerCase();
 
-        const signatureRes = await electionApi.getBlindSignature({
-          electionId: Number(electionId),
-          blindedMessage: blindedMessageBase64
-        });
+        // Ép kiểu dữ liệu an toàn trước khi đẩy qua API Gateway
+        const cleanElectionId = parseInt(String(electionId), 10);
+        const cleanRoundId = parseInt(String(roundId), 10);
+
+        if (isNaN(cleanElectionId) || isNaN(cleanRoundId)) {
+          throw new Error("Thông tin định danh cuộc bầu cử hoặc vòng đấu từ URL không hợp lệ!");
+        }
+
+        const signPayload = {
+          electionId: cleanElectionId,
+          roundId: cleanRoundId,
+          blindedMessage: blindedMessageHex
+        };
+
+        // BƯỚC 3: Gửi payload xin chữ ký mù từ crypto-service
+        const signatureRes = await cryptoApi.getBlindSignature(signPayload);
+        console.log("  > Đã nhận Chữ ký mù S' thành công từ Backend Crypto.");
 
         const sPrime = bigInt(signatureRes.data.signature, 16);
-        const rInv = (r as any).modInv ? (r as any).modInv(N) : (r as any).modInverse(N);
-        const s = sPrime.multiply(rInv).mod(N);
-        const realSignature = s.toString(16);
 
-        // ĐỒNG BỘ PAYLOAD: Sử dụng blindedContent để khớp với VoteRequest DTO
+        // BƯỚC 4: GIẢI MÙ CHUẨN XÁC (Khử hoàn toàn lỗi suy biến lũy thừa)
+        const rInv = r.modInv(N); // Tìm số nghịch đảo số dư thừa chuẩn (r^-1 mod N)
+        const s = sPrime.multiply(rInv).mod(N); // Công thức giải mù: S = (S' * rInv) mod N
+
+        const realSignature = s.toString(16).trim().toLowerCase();
+        const unblindedContentHex = M.toString(16).trim().toLowerCase(); // Chuỗi mã Token sạch hệ Hex chiều dài chuẩn
+
+        console.log("  > [MẬT MÃ] Tính toán toán học giải mù thành công!");
+        console.log("  > Giải mù thành công! Chữ ký số S xịn (Hex dài):", realSignature.substring(0, 25) + "...");
+        console.log("  > Mã Token nặc danh (Hex dài):", unblindedContentHex.substring(0, 25) + "...");
+
+        // BƯỚC 5: Đóng gói Payload đẩy lá phiếu nặc danh lên hòm phiếu công khai
         const votePayload = {
-          electionId: Number(electionId),
+          electionId: cleanElectionId,
+          roundId: cleanRoundId,
           candidateId: candidateId,
-          blindedContent: candidateId.toString(),
+          messageToken: unblindedContentHex, // ĐỔI TÊN THÀNH messageToken ĐỂ KHỚP KHÍT 100% VỚI BACKEND DTO
           signature: realSignature
         };
 
-        console.log(">>> [FE] Gửi phiếu bầu:", votePayload);
-        await electionApi.castVote(votePayload);
-        await Swal.fire("Thành công!", "Phiếu bầu đã được ghi nhận vào database.", "success");
-        navigate(`/results?electionId=${electionId}`);
+        console.log(">>> [FE SUCCESS] Đẩy lá phiếu ẩn danh lên hòm phiếu công khai:", votePayload);
+
+        // Thực hiện đẩy phiếu thông qua lớp API tập trung
+        await cryptoApi.castVote(votePayload);
+
+        console.log("=== LUỒNG BIỂU QUYẾT HOÀN THÀNH THÀNH CÔNG THÔNG SUỐT ===");
+        await Swal.fire("Thành công!", "Bỏ phiếu thành công! Lá phiếu nặc danh của bạn đã lọt vào hòm phiếu an toàn.", "success");
+
+        // Tải lại danh sách ứng cử viên để làm mới tiến trình giao diện
+        const reloadRes = await electionApi.getCandidates(cleanElectionId);
+        const reloadData = reloadRes.data.map((c: any) => ({ ...c, votes: c.voteCount || 0 }));
+        setCandidates(reloadData);
+
+        navigate(`/results?electionId=${cleanElectionId}`);
 
       } catch (error: any) {
-        console.error(">>> [FE] LỖI QUY TRÌNH CRYPTO:", error);
-        Swal.fire("Thất bại", error.message || "Lỗi xử lý chữ ký", "error");
+        console.error("❌ XẢY RA LỖI TẠI QUY TRÌNH CHẨN ĐOÁN FE:", error);
+
+        let errorMessage = "Đường dẫn hòm phiếu lỗi hoặc bạn đã bỏ phiếu ở vòng này rồi.";
+        if (error.response && error.response.data) {
+          if (typeof error.response.data === 'string') errorMessage = error.response.data;
+          else if (error.response.data.message) errorMessage = error.response.data.message;
+        } else {
+          errorMessage = error.message;
+        }
+
+        Swal.fire({
+          title: "Bỏ phiếu thất bại",
+          text: errorMessage,
+          icon: "error",
+          confirmButtonColor: "#e74c3c"
+        });
       } finally {
         setIsSubmitting(false);
       }
@@ -105,7 +180,6 @@ const Candidates = () => {
           Danh Sách <span style={{ color: '#ff6b6b' }}>Ứng Viên</span>
         </motion.h2>
 
-        {/* Khối ứng viên luôn nằm giữa */}
         <div className="candidates-wrapper">
           <div className="candidates-grid">
             {candidates.map((c, index) => {

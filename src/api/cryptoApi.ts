@@ -1,19 +1,18 @@
 import axiosClient from "./axiosClient";
 
 export const cryptoApi = {
-  // Lấy chữ ký mù từ Crypto Service
-  getBlindSignature: (data: { electionId: number; blindedMessage: string }) => {
+  getBlindSignature: (data: { electionId: number; roundId: number; blindedMessage: string }) => {
     return axiosClient.post('/api/crypto/sign', data);
   },
 
-  // Gửi phiếu bầu đã giải mù (Unblinded)
   castVote: (voteData: {
     electionId: number;
+    roundId: number;
     candidateId: number;
-    blindedContent: string;
+    messageToken: string; // Đã đổi tên khớp khít với DTO hệ thống
     signature: string;
   }) => {
-    return axiosClient.post('/api/votes/cast', voteData);
+    return axiosClient.post('/api/votes/submit-anonymous', voteData);
   },
 };
 export default cryptoApi;

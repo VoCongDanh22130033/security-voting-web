@@ -47,5 +47,17 @@ export const userApi = {
   // Gửi OTP + pass mới để cập nhật
   resetPasswordWithOtp: (data: { email: string; otpCode: string; newPassword: string }) =>
       axiosClient.post('/voter/reset-password-otp', data),
+  getById: async (id: number): Promise<any> => {
+    const response = await axiosClient.get(`/voter/${id}`);
+    return response.data;
+  },
+
+  // Khóa tài khoản cử tri (Admin)
+  lockAccount: async (id: number): Promise<any> => {
+    const response = await axiosClient.post(`/voter/${id}/lock`);
+    return response.data;
+  },
 };
+
+
 export default userApi;

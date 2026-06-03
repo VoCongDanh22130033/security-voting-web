@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { electionApi } from "../api/electionApi";
@@ -12,29 +12,153 @@ const Candidates = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const electionId = searchParams.get("electionId");
-  const roundId = searchParams.get("roundId") || "1";
 
+  const [election, setElection] = useState<any>(null);
   const [candidates, setCandidates] = useState<any[]>([]);
+  const [currentRound, setCurrentRound] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Dùng useRef để tránh re-render không cần thiết khi check interval
+  const electionStatusRef = useRef<string | null>(null);
 
   const GATEWAY_URL = 'http://localhost:8080';
 
-  useEffect(() => {
+  const fetchElectionData = async () => {
     if (electionId) {
       setLoading(true);
-      electionApi.getCandidates(Number(electionId))
-      .then((res) => {
-        const data = res.data.map((c: any) => ({ ...c, votes: c.voteCount || 0 }));
-        setCandidates(data);
-      })
-      .catch((err) => {
-        console.error(">>> [FE] Lỗi tải ứng viên:", err);
-        Swal.fire("Lỗi", "Không thể tải danh sách ứng viên", "error");
-      })
-      .finally(() => setLoading(false));
+      try {
+        const res = await electionApi.getById(electionId);
+        const electionData = res.data;
+        
+        // Cơ chế phòng thủ: Nếu Backend chưa cập nhật trường rounds, tự động gọi API lấy rounds
+        let allRounds = electionData.rounds || [];
+        if (allRounds.length === 0) {
+            const roundsRes = await electionApi.getElectionRounds(Number(electionId));
+            allRounds = roundsRes.data;
+        }
+
+        setElection(electionData);
+        electionStatusRef.current = electionData.status;
+
+        if (electionData.status === 'CLOSED') {
+          const resultsRes = await electionApi.getResults(electionId);
+          // An toàn lấy dữ liệu ứng viên
+          const candidatesData = resultsRes.data || [];
+          setCandidates(candidatesData.map((c: any) => ({ ...c, votes: c.voteCount || 0 })));
+        } else {
+          const currentRoundFromServer = allRounds.find((r: any) => r.id === electionData.currentRoundId);
+          setCurrentRound(currentRoundFromServer);
+          
+          // An toàn lấy dữ liệu ứng viên
+          const candidatesFromElection = electionData.candidates || [];
+          setCandidates(candidatesFromElection.map((c: any) => ({ ...c, votes: c.voteCount || 0 })));
+        }
+      } catch (err) {
+        console.error(">>> [FE] Lỗi tải dữ liệu bầu cử:", err);
+        Swal.fire("Lỗi", "Không thể tải dữ liệu.", "error");
+      } finally {
+        setLoading(false);
+      }
     }
+  }
+
+  useEffect(() => {
+    fetchElectionData();
   }, [electionId]);
+
+  // Polling để kiểm tra trạng thái vòng đấu
+  useEffect(() => {
+    if (!electionId || election?.status !== 'OPEN' || !currentRound) {
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const [electionRes, roundsRes] = await Promise.all([
+          electionApi.getById(electionId),
+          electionApi.getElectionRounds(Number(electionId))
+        ]);
+        
+        const latestElection = electionRes.data;
+        const allRounds = roundsRes.data.sort((a: any, b: any) => a.roundNumber - b.roundNumber);
+        const currentRoundInPoll = allRounds.find((r: any) => r.id === currentRound.id);
+
+        if (currentRoundInPoll && currentRoundInPoll.status === 'CLOSED') {
+          clearInterval(interval);
+          const nextRound = allRounds.find((r: any) => r.roundNumber === currentRoundInPoll.roundNumber + 1 && r.status !== 'CANCELLED');
+          const roundTitle = currentRoundInPoll.title || `Vòng ${currentRoundInPoll.roundNumber}`;
+
+          // Kiểm tra xem có người chiến thắng tuyệt đối không (khi election status là CLOSED và vòng hiện tại không phải vòng cuối cùng)
+          const isAbsoluteWin = latestElection.status === 'CLOSED' && latestElection.winnerId && currentRoundInPoll.roundNumber < allRounds.length;
+
+          if (isAbsoluteWin) {
+            const winnerCand = latestElection.candidates?.find((c: any) => c.id === latestElection.winnerId);
+            const winnerName = winnerCand ? winnerCand.name : "Một ứng viên";
+            Swal.fire({
+              title: 'Chiến Thắng Tuyệt Đối!',
+              html: `Ứng cử viên <b style="color: #2ecc71; font-size: 18px;">${winnerName}</b> đã giành được 100% số phiếu và chiến thắng tuyệt đối ngay từ ${roundTitle}!`,
+              icon: 'success',
+              confirmButtonText: 'Xem kết quả'
+            }).then(() => {
+              navigate(`/results?electionId=${electionId}`);
+            });
+          } else if (nextRound) {
+            const startTime = new Date(nextRound.startTime).getTime();
+            Swal.fire({
+              title: 'Vòng đấu đã kết thúc!',
+              html: `Cuộc bầu cử <b>${roundTitle}</b> đã khép lại.`,
+              icon: 'info',
+              confirmButtonText: 'Xác nhận',
+              didOpen: () => {
+                const content = Swal.getHtmlContainer();
+                if (content) {
+                  const timerInterval = setInterval(() => {
+                    const now = new Date().getTime();
+                    if (now >= startTime) {
+                      content.innerHTML = `Cuộc bầu cử <b>${roundTitle}</b> đã kết thúc.<br/><span style="color: green; font-weight: bold;">Vòng tiếp theo đã bắt đầu!</span>`;
+                      clearInterval(timerInterval);
+                    } else {
+                      const diffSecs = Math.ceil((startTime - now) / 1000);
+                      const mins = Math.floor(diffSecs / 60);
+                      const secs = diffSecs % 60;
+                      content.innerHTML = `Cuộc bầu cử <b>${roundTitle}</b> đã kết thúc.<br/>Vòng tiếp theo sẽ bắt đầu sau: <b>${mins} phút ${secs} giây</b>`;
+                    }
+                  }, 1000);
+                  (Swal as any)._timerInterval = timerInterval;
+                }
+              },
+              willClose: () => {
+                clearInterval((Swal as any)._timerInterval);
+              }
+            }).then(() => {
+              if (new Date().getTime() >= startTime) {
+                window.location.reload();
+              } else {
+                navigate(`/results?electionId=${electionId}`);
+              }
+            });
+          } else {
+            const winnerCand = latestElection.candidates?.find((c: any) => c.id === latestElection.winnerId);
+            const winnerName = winnerCand ? winnerCand.name : "";
+            Swal.fire({
+              title: 'Cuộc bầu cử kết thúc!',
+              html: `Cuộc bầu cử <b>${roundTitle}</b> đã kết thúc hoàn toàn. ${winnerName ? `<br/>Người chiến thắng: <b>${winnerName}</b>` : ''}`,
+              icon: 'success',
+              confirmButtonText: 'Xem kết quả'
+            }).then(() => {
+              navigate(`/results?electionId=${electionId}`);
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Lỗi khi poll round status:", error);
+      }
+    }, 5000); // Kiểm tra mỗi 5 giây
+
+    return () => clearInterval(interval);
+  }, [election, currentRound, electionId, navigate]);
+
 
   const totalVotes = candidates.reduce((sum, c) => sum + (c.votes || 0), 0);
 
@@ -58,21 +182,17 @@ const Candidates = () => {
       });
 
       try {
-        console.log("=== [LOG CHẨN ĐOÁN] BẮT ĐẦU QUY TRÌNH KÝ MÙ ===");
+        if (!currentRound?.id) {
+          throw new Error("Không thể xác định vòng bầu cử hiện tại!");
+        }
 
-        // BƯỚC 1: Lấy khóa công khai RSA hệ thống thông qua API Gateway
         const pkRes = await axiosClient.get(`${GATEWAY_URL}/api/crypto/public-key`);
         const N = bigInt(pkRes.data.modulus, 16);
         const E = bigInt(pkRes.data.exponent, 16);
 
-        // BƯỚC 2: Khởi tạo nội dung thông điệp gốc M
-        // Tạo chuỗi Nonce ngẫu nhiên siêu dài bọc kèm ID ứng viên để tránh chuỗi token ngắn gây sập hàm băm Backend
-        // BƯỚC 2: Khởi tạo nội dung thông điệp gốc M
-        // Tạo chuỗi Nonce ngẫu nhiên siêu dài bọc kèm ID ứng viên để tránh trùng lặp
         const randomNonce = Math.floor(Math.random() * 1000000).toString();
         const rawMessageStr = `candidateId=${candidateId}&nonce=${randomNonce}`;
 
-        // CHỈNH SỬA TẠI ĐÂY: Thay thế Buffer lỗi bằng TextEncoder thuần trình duyệt
         const encoder = new TextEncoder();
         const view = encoder.encode(rawMessageStr);
         const messageHexStr = Array.from(view)
@@ -81,88 +201,55 @@ const Candidates = () => {
 
         const M = bigInt(messageHexStr, 16);
 
-        // Sinh số ngẫu nhiên r làm mù thỏa mãn điều kiện gcd(r, N) = 1
         let r;
         do {
           r = bigInt.randBetween(bigInt(2), N.prev());
         } while (bigInt.gcd(r, N).notEquals(1));
 
-        // Thực hiện công thức làm mù mật mã học: M' = (M * r^E) mod N
         const blindedMessageBI = M.multiply(r.modPow(E, N)).mod(N);
         const blindedMessageHex = blindedMessageBI.toString(16).trim().toLowerCase();
 
-        // Ép kiểu dữ liệu an toàn trước khi đẩy qua API Gateway
         const cleanElectionId = parseInt(String(electionId), 10);
-        const cleanRoundId = parseInt(String(roundId), 10);
-
-        if (isNaN(cleanElectionId) || isNaN(cleanRoundId)) {
-          throw new Error("Thông tin định danh cuộc bầu cử hoặc vòng đấu từ URL không hợp lệ!");
-        }
 
         const signPayload = {
           electionId: cleanElectionId,
-          roundId: cleanRoundId,
+          roundId: currentRound.id,
           blindedMessage: blindedMessageHex
         };
 
-        // BƯỚC 3: Gửi payload xin chữ ký mù từ crypto-service
         const signatureRes = await cryptoApi.getBlindSignature(signPayload);
-        console.log("  > Đã nhận Chữ ký mù S' thành công từ Backend Crypto.");
-
         const sPrime = bigInt(signatureRes.data.signature, 16);
-
-        // BƯỚC 4: GIẢI MÙ CHUẨN XÁC (Khử hoàn toàn lỗi suy biến lũy thừa)
-        const rInv = r.modInv(N); // Tìm số nghịch đảo số dư thừa chuẩn (r^-1 mod N)
-        const s = sPrime.multiply(rInv).mod(N); // Công thức giải mù: S = (S' * rInv) mod N
+        const rInv = r.modInv(N);
+        const s = sPrime.multiply(rInv).mod(N);
 
         const realSignature = s.toString(16).trim().toLowerCase();
-        const unblindedContentHex = M.toString(16).trim().toLowerCase(); // Chuỗi mã Token sạch hệ Hex chiều dài chuẩn
+        const unblindedContentHex = M.toString(16).trim().toLowerCase();
 
-        console.log("  > [MẬT MÃ] Tính toán toán học giải mù thành công!");
-        console.log("  > Giải mù thành công! Chữ ký số S xịn (Hex dài):", realSignature.substring(0, 25) + "...");
-        console.log("  > Mã Token nặc danh (Hex dài):", unblindedContentHex.substring(0, 25) + "...");
-
-        // BƯỚC 5: Đóng gói Payload đẩy lá phiếu nặc danh lên hòm phiếu công khai
         const votePayload = {
           electionId: cleanElectionId,
-          roundId: cleanRoundId,
+          roundId: currentRound.id,
           candidateId: candidateId,
-          messageToken: unblindedContentHex, // ĐỔI TÊN THÀNH messageToken ĐỂ KHỚP KHÍT 100% VỚI BACKEND DTO
+          messageToken: unblindedContentHex,
           signature: realSignature
         };
 
-        console.log(">>> [FE SUCCESS] Đẩy lá phiếu ẩn danh lên hòm phiếu công khai:", votePayload);
-
-        // Thực hiện đẩy phiếu thông qua lớp API tập trung
         await cryptoApi.castVote(votePayload);
 
-        console.log("=== LUỒNG BIỂU QUYẾT HOÀN THÀNH THÀNH CÔNG THÔNG SUỐT ===");
         await Swal.fire("Thành công!", "Bỏ phiếu thành công! Lá phiếu nặc danh của bạn đã lọt vào hòm phiếu an toàn.", "success");
-
-        // Tải lại danh sách ứng cử viên để làm mới tiến trình giao diện
-        const reloadRes = await electionApi.getCandidates(cleanElectionId);
-        const reloadData = reloadRes.data.map((c: any) => ({ ...c, votes: c.voteCount || 0 }));
-        setCandidates(reloadData);
 
         navigate(`/results?electionId=${cleanElectionId}`);
 
       } catch (error: any) {
         console.error("❌ XẢY RA LỖI TẠI QUY TRÌNH CHẨN ĐOÁN FE:", error);
-
         let errorMessage = "Đường dẫn hòm phiếu lỗi hoặc bạn đã bỏ phiếu ở vòng này rồi.";
-        if (error.response && error.response.data) {
-          if (typeof error.response.data === 'string') errorMessage = error.response.data;
-          else if (error.response.data.message) errorMessage = error.response.data.message;
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (typeof error.response?.data === 'string') {
+          errorMessage = error.response.data;
         } else {
           errorMessage = error.message;
         }
-
-        Swal.fire({
-          title: "Bỏ phiếu thất bại",
-          text: errorMessage,
-          icon: "error",
-          confirmButtonColor: "#e74c3c"
-        });
+        Swal.fire("Bỏ phiếu thất bại", errorMessage, "error");
       } finally {
         setIsSubmitting(false);
       }
@@ -177,13 +264,18 @@ const Candidates = () => {
             className="page-title"
             style={{ fontSize: '40px', fontWeight: '800', color: '#333', marginBottom: '20px', zIndex: 2 }}
         >
-          Danh Sách <span style={{ color: '#ff6b6b' }}>Ứng Viên</span>
+          {election?.title || "Danh Sách Ứng Viên"}
         </motion.h2>
+        {currentRound && election?.status === 'OPEN' && (
+          <motion.h3 className="round-title">
+            {currentRound.title || `Vòng ${currentRound.roundNumber}`}
+          </motion.h3>
+        )}
 
         <div className="candidates-wrapper">
           <div className="candidates-grid">
             {candidates.map((c, index) => {
-              const percent = totalVotes > 0 ? ((c.votes / totalVotes) * 100).toFixed(1) : "0";
+              const percent = totalVotes > 0 && election?.status === 'CLOSED' ? ((c.votes / totalVotes) * 100).toFixed(1) : "0";
               return (
                   <motion.div
                       key={c.id}
@@ -202,21 +294,25 @@ const Candidates = () => {
                       <h3 className="info-value">{c.name}</h3>
                       <p className="candidate-desc">{c.description || "Chưa có kinh nghiệm"}</p>
                     </div>
-                    <div className="vote-stats">
-                      <div className="vote-progress-container">
-                        <div className="vote-progress-bar" style={{ width: `${percent}%` }} />
+                    {election?.status === 'CLOSED' && (
+                      <div className="vote-stats">
+                        <div className="vote-progress-container">
+                          <div className="vote-progress-bar" style={{ width: `${percent}%` }} />
+                        </div>
+                        <div className="vote-info">
+                          <span>{percent}% phiếu bầu ({c.votes} phiếu)</span>
+                        </div>
                       </div>
-                      <div className="vote-info">
-                        <span>{percent}% phiếu bầu ({c.votes} phiếu)</span>
-                      </div>
-                    </div>
-                    <button
-                        className="btn-vote-now"
-                        disabled={isSubmitting}
-                        onClick={() => handleVote(c.id, c.name)}
-                    >
-                      {isSubmitting ? "Đang xử lý..." : "Bình chọn ngay"}
-                    </button>
+                    )}
+                    {election?.status !== 'CLOSED' && (
+                      <button
+                          className="btn-vote-now"
+                          disabled={isSubmitting}
+                          onClick={() => handleVote(c.id, c.name)}
+                      >
+                        {isSubmitting ? "Đang xử lý..." : "Bình chọn ngay"}
+                      </button>
+                    )}
                   </motion.div>
               );
             })}
@@ -229,9 +325,21 @@ const Candidates = () => {
           </button>
           <button
               className="btn-view-results-bottom"
-              onClick={() => navigate(`/results?electionId=${electionId}`)}
+              onClick={() => {
+                if (election?.status !== 'CLOSED') {
+                  Swal.fire({
+                    title: "Chưa thể xem kết quả!",
+                    text: "Cuộc bầu cử vẫn đang diễn ra. Bạn chỉ có thể xem kết quả sau khi cuộc bầu cử kết thúc hoàn toàn.",
+                    icon: "warning",
+                    confirmButtonColor: "#3498db",
+                    confirmButtonText: "Đã hiểu"
+                  });
+                } else {
+                  navigate(`/results?electionId=${electionId}`);
+                }
+              }}
           >
-            📊 Xem kết quả hiện tại
+            📊 Xem kết quả
           </button>
         </div>
       </div>

@@ -63,10 +63,10 @@
     box-shadow: 0 4px 12px rgba(255, 122, 0, 0.2);
 }
 
-/* GRID - Sửa lỗi các card bị xếp chồng hàng dọc */
+/* GRID - Sửa thành 3 cột */
 .election-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(3, 1fr); /* Luôn luôn 3 cột */
     gap: 30px;
     max-width: 1200px;
     width: 100%;

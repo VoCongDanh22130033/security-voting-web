@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { electionApi } from '../../api/electionApi';
 
+// Giao diện (Interface) cho các đối tượng dữ liệu
 interface Candidate {
     id?: number;
     name: string;
@@ -13,63 +15,87 @@ interface Candidate {
 }
 
 interface RoundTimeConfig {
+    id?: number;
     roundNumber: number;
+    title: string;
     startTime: string;
     endTime: string;
     maxAdvanceCount: number;
-    title?: string;
 }
 
-export const CreateElection: React.FC = () => {
+const EditElection: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+
+    // States
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [totalRounds, setTotalRounds] = useState<number>(1);
     const [electionImageBase64, setElectionImageBase64] = useState('');
-    const [roundsConfig, setRoundsConfig] = useState<RoundTimeConfig[]>([
-        { roundNumber: 1, startTime: '', endTime: '', maxAdvanceCount: 1 }
-    ]);
-    const [dbCandidates, setDbCandidates] = useState<Candidate[]>([]);
+    const [previewImageUrl, setPreviewImageUrl] = useState('');
+    const [roundsConfig, setRoundsConfig] = useState<RoundTimeConfig[]>([]);
+
+    // Danh sách ứng viên gốc của cuộc bầu cử
+    const [currentCandidates, setCurrentCandidates] = useState<Candidate[]>([]);
+
     const [localCandidates, setLocalCandidates] = useState<Candidate[]>([]);
     const [selectedCandidateIds, setSelectedCandidateIds] = useState<number[]>([]);
+    const [initialCandidateIds, setInitialCandidateIds] = useState<number[]>([]);
+
+    // State cho form thêm ứng viên
     const [showAddForm, setShowAddForm] = useState(false);
     const [newName, setNewName] = useState('');
     const [newParty, setNewParty] = useState('');
     const [newBio, setNewBio] = useState('');
     const [newImageBase64, setNewImageBase64] = useState('');
 
-    // Chỉ fetch ứng viên khi người dùng thực sự cần
-    const fetchDbCandidates = async () => {
-        try {
-            const response = await electionApi.getAllCandidates();
-            setDbCandidates(response || []);
-        } catch (err) {
-            console.error("Lỗi lấy danh sách ứng viên:", err);
-        }
-    };
-
+    // Fetch dữ liệu ban đầu
     useEffect(() => {
-        // Không fetch ứng viên khi component được tải lần đầu
-    }, []);
+        const fetchData = async () => {
+            if (id) {
+                try {
+                    const [electionRes, roundsRes] = await Promise.all([
+                        electionApi.getById(id),
+                        electionApi.getElectionRounds(Number(id))
+                    ]);
+
+                    const electionData = electionRes.data;
+                    setTitle(electionData.title || '');
+                    setDescription(electionData.description || '');
+                    setTotalRounds(electionData.totalRounds || 1);
+                    setPreviewImageUrl(electionData.image || '');
+
+                    const roundsData = roundsRes.data.sort((a: RoundTimeConfig, b: RoundTimeConfig) => a.roundNumber - b.roundNumber);
+                    setRoundsConfig(roundsData.map((r: any) => ({
+                        ...r,
+                        // Cắt bớt phần giây/mili-giây để phù hợp với input datetime-local nếu cần
+                        startTime: r.startTime ? r.startTime.substring(0, 16) : '',
+                        endTime: r.endTime ? r.endTime.substring(0, 16) : ''
+                    })));
+
+                    const cands = electionData.candidates || [];
+                    setCurrentCandidates(cands);
+                    
+                    const currentIds = cands.map((c: Candidate) => c.id);
+                    setSelectedCandidateIds(currentIds);
+                    setInitialCandidateIds(currentIds);
+
+                } catch (error) {
+                    console.error("Lỗi tải dữ liệu cuộc bầu cử:", error);
+                    Swal.fire("Lỗi", "Không thể tải dữ liệu để chỉnh sửa.", "error");
+                }
+            }
+        };
+        fetchData();
+    }, [id]);
 
     const handleTotalRoundsChange = (rounds: number) => {
         setTotalRounds(rounds);
         const newConfigs: RoundTimeConfig[] = [];
         for (let i = 1; i <= rounds; i++) {
             const existingConfig = roundsConfig.find(r => r.roundNumber === i);
-            let maxAdvance = existingConfig ? existingConfig.maxAdvanceCount : 1;
-
-            if (i === rounds) {
-                maxAdvance = 1;
-            } else if (existingConfig && existingConfig.maxAdvanceCount === 1) {
-                maxAdvance = 5;
-            } else if (!existingConfig) {
-                maxAdvance = 5;
-            }
-
             newConfigs.push(
-                existingConfig 
-                    ? { ...existingConfig, maxAdvanceCount: maxAdvance } 
-                    : { roundNumber: i, startTime: '', endTime: '', maxAdvanceCount: maxAdvance, title: `${title} Vòng ${i}` }
+                existingConfig || { roundNumber: i, title: `${title} Vòng ${i}`, startTime: '', endTime: '', maxAdvanceCount: i === rounds ? 1 : 5 }
             );
         }
         setRoundsConfig(newConfigs);
@@ -85,34 +111,21 @@ export const CreateElection: React.FC = () => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => setElectionImageBase64(reader.result as string || '');
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => setNewImageBase64(reader.result as string || '');
+            reader.onloadend = () => {
+                const base64 = reader.result as string;
+                setElectionImageBase64(base64);
+                setPreviewImageUrl(base64);
+            };
             reader.readAsDataURL(file);
         }
     };
 
     const handleAddCandidateToLocalList = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newName.trim()) {
-            Swal.fire("Cảnh báo", "Vui lòng nhập họ và tên ứng cử viên!", "warning");
-            return;
-        }
-        const tempCandidate: Candidate = {
-            name: newName, party: newParty, description: newBio, base64Image: newImageBase64, isNew: true
-        };
+        if (!newName.trim()) return;
+        const tempCandidate: Candidate = { name: newName, party: newParty, description: newBio, base64Image: newImageBase64, isNew: true };
         setLocalCandidates([...localCandidates, tempCandidate]);
         setNewName(''); setNewParty(''); setNewBio(''); setNewImageBase64('');
-        Swal.fire({
-            toast: true, position: 'top-end', icon: 'success', title: `Đã thêm tạm ứng viên ${tempCandidate.name}`, showConfirmButton: false, timer: 1500
-        });
     };
 
     const handleRemoveLocalCandidate = (index: number) => {
@@ -120,11 +133,9 @@ export const CreateElection: React.FC = () => {
     };
 
     const handleToggleDbCandidate = (candidateId: number) => {
-        if (selectedCandidateIds.includes(candidateId)) {
-            setSelectedCandidateIds(selectedCandidateIds.filter(id => id !== candidateId));
-        } else {
-            setSelectedCandidateIds([...selectedCandidateIds, candidateId]);
-        }
+        setSelectedCandidateIds(prev => 
+            prev.includes(candidateId) ? prev.filter(id => id !== candidateId) : [...prev, candidateId]
+        );
     };
 
     const handleSubmitElection = async (e: React.FormEvent) => {
@@ -148,8 +159,7 @@ export const CreateElection: React.FC = () => {
         }
 
         Swal.fire({
-            title: "Đang khởi tạo cuộc bầu cử...",
-            text: "Hệ thống đang lưu trữ cấu hình chuỗi vòng và số lượng tiêu chuẩn bộ lọc",
+            title: "Đang cập nhật...",
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
@@ -162,160 +172,88 @@ export const CreateElection: React.FC = () => {
                 base64Image: electionImageBase64,
                 roundsTimeSettings: roundsConfig.map(r => ({
                     ...r,
-                    title: totalRounds > 1 ? `${title} Vòng ${r.roundNumber}` : `${title}`,
+                    title: totalRounds > 1 ? `${title} Vòng ${r.roundNumber}` : title,
                     maxAdvanceCount: r.roundNumber === totalRounds ? 1 : r.maxAdvanceCount,
+                    // THÊM GIÂY VÀO THỜI GIAN ĐỂ KHÔNG BỊ LỖI BACKEND PARSE
                     startTime: r.startTime.length === 16 ? `${r.startTime}:00` : r.startTime,
                     endTime: r.endTime.length === 16 ? `${r.endTime}:00` : r.endTime
                 })),
                 candidateIds: selectedCandidateIds,
-                newCandidates: localCandidates
+                newCandidates: localCandidates,
+                initialCandidateIds: initialCandidateIds 
             };
 
-            await electionApi.createMultiRound(payload);
+            await electionApi.update(Number(id), payload);
 
-            await Swal.fire("Thành công!", `Cuộc bầu cử gồm ${totalRounds} vòng đã được tạo lập hoàn chỉnh.`, "success");
-
-            setTitle('');
-            setDescription('');
-            setElectionImageBase64('');
-            handleTotalRoundsChange(1);
-            setSelectedCandidateIds([]);
-            setLocalCandidates([]);
-            setDbCandidates([]);
+            await Swal.fire("Thành công!", "Cuộc bầu cử đã được cập nhật.", "success");
+            navigate('/host-dashboard');
 
         } catch (err: any) {
             console.error(err);
-            let errorMessage = "Không thể khởi tạo cuộc bầu cử!";
-            if (err.response?.data) {
-                if (typeof err.response.data === 'string') {
-                    errorMessage = err.response.data;
-                } else if (err.response.data.message) {
-                    errorMessage = err.response.data.message;
-                }
-            }
-            Swal.fire("Thất bại", errorMessage, "error");
+            Swal.fire("Thất bại", err.response?.data?.message || err.response?.data || "Có lỗi xảy ra khi cập nhật.", "error");
         }
     };
 
     return (
         <div className="profile-container" style={{ maxWidth: '850px', margin: '30px auto', padding: '25px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
             <div className="info-section">
-                <h2 style={{ textAlign: 'center', marginBottom: '5px', color: '#2c3e50', fontWeight: '700' }}>THIẾT LẬP CUỘC BẦU CỬ NHIỀU VÒNG</h2>
-                <p style={{ textAlign: 'center', color: '#7f8c8d', fontSize: '13px', marginBottom: '30px' }}>
-                    Nhập thông tin, cấu hình chuỗi thời gian độc lập và chỉ tiêu số lượng ứng viên đi tiếp cho từng vòng.
-                </p>
-
-                <form onSubmit={handleSubmitElection} className="edit-form">
-                    {/* KHU VỰC 1: THÔNG TIN CHUNG */}
+                <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#2c3e50', fontWeight: '700' }}>CHỈNH SỬA CUỘC BẦU CỬ</h2>
+                 <form onSubmit={handleSubmitElection} className="edit-form">
+                    {/* THÔNG TIN CHUNG */}
                     <div style={{ marginBottom: '25px', paddingBottom: '15px', borderBottom: '1px solid #eaedf1' }}>
                         <div className="form-group">
                             <label>Tên cuộc bầu cử <span style={{ color: 'red' }}>*</span></label>
-                            <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder="Ví dụ: Đại biểu Hội đồng trường nhiệm kỳ mới" />
+                            <input type="text" required value={title} onChange={e => setTitle(e.target.value)} />
                         </div>
-
                         <div className="form-group" style={{ marginTop: '15px' }}>
-                            <label>Mô tả / Thể lệ cuộc bầu cử</label>
-                            <textarea rows={2} value={description} onChange={e => setDescription(e.target.value)} placeholder="Nhập quy định lọc ứng viên qua từng vòng..." style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontFamily: 'inherit', fontSize: '14px' }} />
+                            <label>Mô tả</label>
+                            <textarea rows={2} value={description} onChange={e => setDescription(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
                         </div>
-
                         <div className="form-group" style={{ marginTop: '15px' }}>
-                            <label>Ảnh đại diện / Banner cuộc bầu cử</label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleElectionImageChange}
-                                style={{ border: 'none', padding: 0, background: 'transparent' }}
-                            />
-                            {electionImageBase64 && (
-                                <div style={{ marginTop: '12px', textAlign: 'left' }}>
-                                    <span style={{ fontSize: '12px', color: '#7f8c8d', display: 'block', marginBottom: '5px' }}>Xem trước ảnh banner:</span>
-                                    <img
-                                        src={electionImageBase64}
-                                        alt="Election Banner Preview"
-                                        style={{ maxWidth: '100%', maxHeight: '160px', borderRadius: '8px', border: '1px solid #e2e8f0', objectFit: 'cover' }}
-                                    />
+                            <label>Ảnh đại diện</label>
+                            <input type="file" accept="image/*" onChange={handleElectionImageChange} />
+                            {previewImageUrl && (
+                                <div style={{ marginTop: '12px' }}>
+                                    <img src={previewImageUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '160px', borderRadius: '8px' }} />
                                 </div>
                             )}
                         </div>
-
                         <div className="form-group" style={{ marginTop: '15px' }}>
-                            <label>Thiết lập số vòng bầu cử (Từ 1 tới 10 vòng) <span style={{ color: 'red' }}>*</span></label>
-                            <select
-                                value={totalRounds}
-                                onChange={e => handleTotalRoundsChange(Number(e.target.value))}
-                                style={{ width: '100%', padding: '11px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '14px', background: '#fff', fontWeight: '600', color: '#2c3e50' }}
-                            >
+                            <label>Số vòng <span style={{ color: 'red' }}>*</span></label>
+                            <select value={totalRounds} onChange={e => handleTotalRoundsChange(Number(e.target.value))} style={{ width: '100%', padding: '11px', borderRadius: '6px' }}>
                                 {[...Array(10)].map((_, index) => (
-                                    <option key={index + 1} value={index + 1}>
-                                        Chạy tổng cộng: {index + 1} vòng bỏ phiếu
-                                    </option>
+                                    <option key={index + 1} value={index + 1}>{index + 1} vòng</option>
                                 ))}
                             </select>
                         </div>
                     </div>
 
-                    {/* KHU VỰC CẤU HÌNH THỜI GIAN THEO VÒNG */}
-                    <div style={{ marginBottom: '25px', padding: '18px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                        <h4 style={{ color: '#4a90e2', fontSize: '14px', margin: '0 0 15px 0', fontWeight: '700' }}>⏱️ Thiết lập khung thời gian & Chỉ tiêu thắng cuộc từng vòng</h4>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            {roundsConfig.map((round) => (
-                                <div
-                                    key={round.roundNumber}
-                                    style={{ padding: '15px', background: '#fff', borderRadius: '6px', border: '1px solid #cbd5e1', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
-                                >
-                                    <h5 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <span style={{ background: '#4a90e2', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>VÒNG {round.roundNumber}</span>
-                                        Cấu hình chi tiết Vòng {round.roundNumber}
-                                    </h5>
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                        <div className="form-group">
-                                            <label style={{ fontSize: '12px', color: '#475569' }}>Thời gian mở hòm phiếu vòng {round.roundNumber} <span style={{ color: 'red' }}>*</span></label>
-                                            <input
-                                                type="datetime-local"
-                                                required
-                                                value={round.startTime}
-                                                onChange={e => handleRoundConfigChange(round.roundNumber, 'startTime', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label style={{ fontSize: '12px', color: '#475569' }}>Thời gian khóa hòm phiếu vòng {round.roundNumber} <span style={{ color: 'red' }}>*</span></label>
-                                            <input
-                                                type="datetime-local"
-                                                required
-                                                value={round.endTime}
-                                                onChange={e => handleRoundConfigChange(round.roundNumber, 'endTime', e.target.value)}
-                                            />
-                                        </div>
+                    {/* CẤU HÌNH VÒNG ĐẤU */}
+                    <div style={{ marginBottom: '25px' }}>
+                        {roundsConfig.map((round) => (
+                            <div key={round.roundNumber} style={{ padding: '15px', background: '#f8fafc', borderRadius: '8px', marginBottom: '15px' }}>
+                                <h5>Vòng {round.roundNumber}</h5>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                    <div className="form-group">
+                                        <label>Bắt đầu</label>
+                                        <input type="datetime-local" required value={round.startTime} onChange={e => handleRoundConfigChange(round.roundNumber, 'startTime', e.target.value)} />
                                     </div>
-
-                                    {round.roundNumber < totalRounds ? (
-                                        <div className="form-group" style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed #e2e8f0' }}>
-                                            <label style={{ fontSize: '12px', color: '#166534', fontWeight: '600' }}>
-                                                🎯 Số lượng ứng viên cao phiếu nhất ở Vòng {round.roundNumber} sẽ lọt vào Vòng {round.roundNumber + 1} <span style={{ color: 'red' }}>*</span>
-                                            </label>
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                required
-                                                value={round.maxAdvanceCount}
-                                                onChange={e => handleRoundConfigChange(round.roundNumber, 'maxAdvanceCount', Math.max(1, Number(e.target.value)))}
-                                                placeholder="Ví dụ: 5"
-                                                style={{ marginTop: '5px', padding: '8px', width: '100%', maxWidth: '200px' }}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', color: '#b45309', fontSize: '12px', fontWeight: '500' }}>
-                                            👑 Vòng {round.roundNumber} là Vòng Chung Kết - Người cao phiếu nhất vòng này sẽ là người chiến thắng cuối cùng.
-                                        </div>
-                                    )}
+                                    <div className="form-group">
+                                        <label>Kết thúc</label>
+                                        <input type="datetime-local" required value={round.endTime} onChange={e => handleRoundConfigChange(round.roundNumber, 'endTime', e.target.value)} />
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
+                                {round.roundNumber < totalRounds && (
+                                    <div className="form-group" style={{ marginTop: '12px' }}>
+                                        <label>Số người đi tiếp</label>
+                                        <input type="number" min={1} required value={round.maxAdvanceCount} onChange={e => handleRoundConfigChange(round.roundNumber, 'maxAdvanceCount', Math.max(1, Number(e.target.value)))} />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
 
-                    {/* KHU VỰC THÊM ỨNG VIÊN THỦ CÔNG & CHỌN LƯỚI */}
+                    {/* QUẢN LÝ ỨNG VIÊN */}
                     <div style={{ marginBottom: '25px', padding: '15px', borderRadius: '8px', background: '#f0fdf4', border: '1px dashed #2ecc71' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                             <h4 style={{ color: '#166534', fontSize: '14px', margin: 0, fontWeight: '600' }}>➕ Khung thêm nhanh nhiều ứng cử viên thủ công</h4>
@@ -352,7 +290,7 @@ export const CreateElection: React.FC = () => {
 
                     <div style={{ marginBottom: '30px' }}>
                         <h4 style={{ color: '#2c3e50', fontSize: '15px', marginBottom: '10px' }}>
-                            👥 Tổng số ứng viên tham gia Vòng 1 (Đã chọn: <strong style={{ color: '#2ecc71' }}>{selectedCandidateIds.length + localCandidates.length}</strong>)
+                            👥 Danh sách ứng viên của cuộc bầu cử (Đã chọn: <strong style={{ color: '#2ecc71' }}>{selectedCandidateIds.length + localCandidates.length}</strong>)
                         </h4>
                         <div style={{ maxHeight: '350px', overflowY: 'auto', border: '1px solid #e2e8f0', padding: '15px', borderRadius: '10px', background: '#f8fafc' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
@@ -369,7 +307,7 @@ export const CreateElection: React.FC = () => {
                                         </div>
                                     </div>
                                 ))}
-                                {dbCandidates.map(candidate => {
+                                {currentCandidates.map(candidate => {
                                     const isChecked = selectedCandidateIds.includes(candidate.id!);
                                     return (
                                         <div key={`db-${candidate.id}`} onClick={() => handleToggleDbCandidate(candidate.id!)} style={{ display: 'flex', alignItems: 'flex-start', padding: '12px', borderRadius: '8px', background: '#fff', border: isChecked ? '2px solid #3498db' : '1px solid #e2e8f0', cursor: 'pointer', position: 'relative' }}>
@@ -390,8 +328,8 @@ export const CreateElection: React.FC = () => {
                     </div>
 
                     <div className="action-section">
-                        <button type="submit" className="change-password-btn" style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#2ecc71', color: '#fff', fontSize: '15px', fontWeight: '600', border: 'none', cursor: 'pointer' }}>
-                            Xác nhận khởi tạo cuộc bầu cử và cấu hình các vòng
+                        <button type="submit" className="change-password-btn" style={{ width: '100%', padding: '14px' }}>
+                            Lưu Thay Đổi
                         </button>
                     </div>
                 </form>
@@ -399,4 +337,5 @@ export const CreateElection: React.FC = () => {
         </div>
     );
 };
-export default CreateElection;
+
+export default EditElection;

@@ -7,6 +7,7 @@ import Profile from "./pages/Profile.tsx";
 import VoteStatus from "./pages/VoteStatus.tsx";
 import HostDashboard from "./pages/hostDashboard/HostDashboard.tsx";
 import CreateElection from "./components/electionComponent/CreateElection.tsx";
+import EditElection from "./components/electionComponent/EditElection.tsx";
 import ElectionStatusManager from "./components/electionComponent/ElectionStatusManager.tsx";
 import Admin from "./pages/admin/Admin.tsx";
 import UserLayout from "./layouts/UserLayout.tsx";
@@ -18,6 +19,7 @@ import ElectionDetail from "./components/electionComponent/ElectionDetail.tsx";
 import Candidates from "./pages/Candidates.tsx";
 import Results from "./pages/Results.tsx";
 import VerifyEmail from "./pages/VerifyEmail.tsx";
+
 function App() {
     return (
         <AuthProvider>
@@ -53,6 +55,7 @@ function App() {
                         }>
                             <Route path="/host-dashboard" element={<HostDashboard/>}/>
                             <Route path="/create-election" element={<CreateElection/>}/>
+                            <Route path="/edit-election/:id" element={<EditElection />} />
                             <Route path="/election-status-manager" element={<ElectionStatusManager/>}/>
                         </Route>
 

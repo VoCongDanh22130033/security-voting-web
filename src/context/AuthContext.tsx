@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  updateAuthUser: (updatedData: Partial<User>) => void; // Thêm hàm cập nhật
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,7 +60,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(userData);
       setIsAuthenticated(true);
     } catch (err: any) {
-      // SỬA TẠI ĐÂY: Đọc thêm trường hợp dữ liệu trả về trực tiếp dạng string từ Backend
       const errorMessage =
           err?.response?.data?.message ||
           (typeof err?.response?.data === "string" ? err.response.data : "") ||
@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           "Đăng nhập thất bại";
 
       setError(errorMessage);
-      throw new Error(errorMessage); // Ném lỗi ra ngoài để Login.tsx bắt được
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -81,8 +81,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearError = () => setError(null);
 
+  // Hàm mới để cập nhật thông tin user trong AuthContext
+  const updateAuthUser = (updatedData: Partial<User>) => {
+    setUser(prevUser => {
+      if (!prevUser) return null;
+      const newUser = { ...prevUser, ...updatedData };
+      // Cập nhật lại localStorage để giữ trạng thái sau khi reload
+      localStorage.setItem("user", JSON.stringify(newUser));
+      return newUser;
+    });
+  };
+
   return (
-      <AuthContext.Provider value={{ user, isAuthenticated, isLoading, error, login, logout, clearError }}>
+      <AuthContext.Provider value={{ user, isAuthenticated, isLoading, error, login, logout, clearError, updateAuthUser }}>
         {children}
       </AuthContext.Provider>
   );

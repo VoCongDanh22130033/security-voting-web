@@ -20,15 +20,22 @@ const Elections = () => {
     .finally(() => setLoading(false));
   }, []);
 
-  // Logic lọc dữ liệu dựa trên trạng thái
-  const filteredElections = elections.filter((e) => e.status === filter);
+  // ĐÃ SỬA LOGIC LỌC: Gộp cả trạng thái 'CLOSED' và 'CLOSED' vào tab "Đã kết thúc"
+  const filteredElections = elections.filter((e) => {
+    const statusUpper = e.status ? e.status.toUpperCase().trim() : "";
+    if (filter === "CLOSED") {
+      return statusUpper === "CLOSED" || statusUpper === "CLOSED";
+    }
+    return statusUpper === filter;
+  });
 
-  // Hàm helper để hiển thị text trạng thái thân thiện hơn
+  // Hàm helper hiển thị text tiếng Việt thân thiện
   const getStatusText = (status: string) => {
-    switch (status) {
-      case "OPEN": return "Đang mở";
+    const statusUpper = status ? status.toUpperCase().trim() : "";
+    switch (statusUpper) {
+      case "OPEN": return "Đang diễn ra";
       case "UPCOMING": return "Sắp diễn ra";
-      case "ENDED": return "Đã đóng";
+      case "CLOSED": return "Đã kết thúc";
       default: return status;
     }
   };
@@ -42,7 +49,6 @@ const Elections = () => {
           <div className="header-line"></div>
 
           <div className="filter-bar">
-            {/* Thêm nút Sắp diễn ra */}
             <button
                 className={filter === "UPCOMING" ? "active" : ""}
                 onClick={() => setFilter("UPCOMING")}
@@ -56,8 +62,8 @@ const Elections = () => {
               Đang diễn ra
             </button>
             <button
-                className={filter === "ENDED" ? "active" : ""}
-                onClick={() => setFilter("ENDED")}
+                className={filter === "CLOSED" ? "active" : ""}
+                onClick={() => setFilter("CLOSED")}
             >
               Đã kết thúc
             </button>
@@ -66,42 +72,47 @@ const Elections = () => {
 
         <div className="election-grid">
           {filteredElections.length > 0 ? (
-              filteredElections.map((election) => (
-                  <motion.div key={election.id} className="election-card" whileHover={{ scale: 1.02 }}>
-                    <div className="card-image">
-                      <img src={election.image || 'https://via.placeholder.com/400x200'} alt={election.title} />
-                      {/* Class động cho badge để đổi màu theo trạng thái */}
-                      <span className={`status-badge badge-${election.status.toLowerCase()}`}>
+              filteredElections.map((election) => {
+                const statusUpper = election.status ? election.status.toUpperCase().trim() : "";
+                const isFinished = statusUpper === "CLOSED" || statusUpper === "CLOSED";
+
+                return (
+                    <motion.div key={election.id} className="election-card" whileHover={{ scale: 1.02 }}>
+                      <div className="card-image">
+                        <img src={election.image || 'https://via.placeholder.com/400x200'} alt={election.title} />
+                        <span className={`status-badge badge-${statusUpper.toLowerCase()}`}>
                             {getStatusText(election.status)}
                       </span>
-                    </div>
-                    <div className="card-body">
-                      <h3>{election.title}</h3>
-                      <p>{election.description}</p>
-                    </div>
-                    <div className="card-footer">
-                      {/* LOGIC ĐỘNG: Nếu kết thúc thì xem kết quả, nếu không thì giữ nút bầu cử gốc */}
-                      {election.status && (election.status.toUpperCase().trim() === "ENDED" || election.status.toUpperCase().trim() === "CLOSED") ? (
-                          <button
-                              className="action-btn"
-                              onClick={() => navigate(`/results?electionId=${election.id}&roundId=1`)}
-                          >
-                            Xem kết quả
-                          </button>
-                      ) : (
-                          <button
-                              className="action-btn"
-                              disabled={election.status !== "OPEN"} // Vô hiệu hóa nút nếu chưa đến giờ bầu
-                              onClick={() => navigate(`/candidates?electionId=${election.id}`)}
-                          >
-                            {election.status === "UPCOMING" ? "Chưa bắt đầu" : "Tham gia bầu cử"}
-                          </button>
-                      )}
-                    </div>
-                  </motion.div>
-              ))
+                      </div>
+                      <div className="card-body">
+                        <h3>{election.title}</h3>
+                        <p>{election.description}</p>
+                      </div>
+                      <div className="card-footer">
+                        {/* ĐÃ SỬA ĐIỀU KIỆN ĐIỀU HƯỚNG ĐA NHIỆM CHUẨN XÁC */}
+                        {isFinished ? (
+                            <button
+                                className="action-btn"
+                                style={{ backgroundColor: '#34495e' }}
+                                onClick={() => navigate(`/results?electionId=${election.id}&roundId=1`)} //
+                            >
+                              Xem kết quả chung cuộc
+                            </button>
+                        ) : (
+                            <button
+                                className="action-btn"
+                                disabled={statusUpper === "UPCOMING"}
+                                onClick={() => navigate(`/candidates?electionId=${election.id}`)} //
+                            >
+                              {statusUpper === "UPCOMING" ? "Chưa bắt đầu" : "Tham gia bầu cử"}
+                            </button>
+                        )}
+                      </div>
+                    </motion.div>
+                );
+              })
           ) : (
-              <div className="no-data" style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px' }}>
+              <div className="no-data" style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px', color: '#7f8c8d' }}>
                 Không có cuộc bầu cử nào {getStatusText(filter).toLowerCase()}.
               </div>
           )}

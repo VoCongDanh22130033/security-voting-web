@@ -1,166 +1,274 @@
-/* --- TỔNG THỂ --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 .results-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Sử dụng gradient trắng - hồng nhạt từ trang Home */
-    background: linear-gradient(135deg, #fff 50%, #fff5f5 50%);
-    padding: 20px;
-    font-family: 'Inter', sans-serif;
-}
-
-.results-main {
-    width: 100%;
-    max-width: 750px;
-    animation: fadeInLeft 0.8s ease-out; /* Animation đồng bộ với trang Home */
-}
-
-/* --- CARD KẾT QUẢ --- */
-.results-card {
-    background: white;
-    padding: 50px;
-    border-radius: 30px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    /* Border nhấn giống stats-card ở Home */
-    border-left: 8px solid #ff6b6b;
-    position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: #f7f8fc;
+  padding: 100px 20px 60px;
+  font-family: 'Inter', sans-serif;
 }
 
 .results-header {
-    text-align: left;
-    margin-bottom: 40px;
+  text-align: center;
+  margin-bottom: 40px;
 }
 
 .results-header h1 {
-    font-size: 38px;
-    color: #333;
-    margin-bottom: 10px;
-    font-weight: 800;
+  font-size: 40px;
+  font-weight: 800;
+  color: #1a202c;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.results-header h1 span {
-    color: #ff6b6b;
+.results-header h2 {
+  font-size: 1.2rem;
+  color: #4a5568;
+  font-weight: 500;
+  margin-top: 8px;
 }
 
-.live-badge {
-    background: #fff5f5;
-    color: #ff6b6b;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: bold;
-    display: inline-block;
-    margin-bottom: 15px;
-    border: 1px solid rgba(255, 107, 107, 0.2);
+/* --- NÂNG CẤP UI CHO TABS --- */
+.round-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+  padding: 8px;
+  border-radius: 99px; /* Bo tròn hoàn toàn */
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px); /* Hiệu ứng kính mờ */
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-/* --- PHẦN HIỂN THỊ HÌNH ẢNH --- */
-.candidate-meta {
-    display: flex;
-    align-items: center;
-    gap: 18px;
+.tab-btn {
+  padding: 10px 25px;
+  border: none;
+  background-color: transparent;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 30px;
 }
 
-.candidate-avatar-res {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    object-fit: cover; /* Chống méo ảnh */
-    border: 3px solid #fff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    background: #eee;
+.tab-btn:hover {
+  background-color: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
 }
 
-.candidate-name-res {
-    font-weight: 700;
-    color: #333;
-    font-size: 18px;
+.tab-btn.active {
+  background: #ff6b6b;
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
 }
 
-/* --- DANH SÁCH & THÔNG SỐ --- */
-.result-item {
-    margin-bottom: 30px;
+.round-summary {
+  text-align: center;
+  margin-bottom: 40px;
+  font-size: 1.1rem;
+  color: #2d3748;
+  background-color: #fff;
+  padding: 15px 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
 }
 
-.result-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
+.summary-highlight {
+  font-weight: 700;
+  color: #ff6b6b;
 }
 
-.vote-stats-res {
-    text-align: right;
+.final-winner-announcement {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f39c12;
+  animation: pulse 2s infinite;
 }
 
-.vote-percent-res {
-    display: block;
-    font-size: 22px;
-    font-weight: 800;
-    color: #ff6b6b;
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
-/* --- THANH PROGRESS --- */
-.progress-bar-container {
-    height: 12px;
-    background: #f0f0f0;
-    border-radius: 20px;
-    overflow: hidden;
+.results-content {
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  justify-content: center;
 }
 
-.progress-fill {
-    height: 100%;
-    border-radius: 20px;
-    transition: width 1.5s cubic-bezier(0.1, 0.42, 0.41, 1);
+.candidates-grid-results {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  width: 100%;
 }
 
-/* --- NÚT BẤM (STYLE TRANG HOME) --- */
-.results-footer-actions {
-    margin-top: 45px;
-    display: flex;
-    gap: 20px;
+@media (max-width: 1200px) { .candidates-grid-results { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 900px) { .candidates-grid-results { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .candidates-grid-results { grid-template-columns: 1fr; } }
+
+/* --- NÂNG CẤP UI CHO CARD --- */
+.candidate-card-result {
+  background: white;
+  border-radius: 24px;
+  padding: 25px;
+  box-shadow: 0 10px 25px rgba(45, 55, 72, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid #e2e8f0;
 }
 
-.btn-res-primary {
-    flex: 2;
-    background: #ff6b6b;
+.candidate-card-result:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(45, 55, 72, 0.12);
+}
+
+.candidate-card-result.winner {
+  border-color: #3498db;
+}
+
+.candidate-card-result.final-winner {
+  border-color: transparent;
+  transform: scale(1.05);
+  box-shadow: 0 0 25px 0 rgba(241, 196, 15, 0.6), 0 10px 30px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+/* --- NÂNG CẤP HUY HIỆU --- */
+.winner-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #3498db;
     color: white;
-    border: none;
-    padding: 16px;
-    font-weight: bold;
-    font-size: 16px;
-    border-radius: 35px;
-    cursor: pointer;
-    box-shadow: 0 8px 15px rgba(255, 107, 107, 0.3);
-    transition: 0.3s;
+    font-size: 1.5rem;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+    border: 2px solid white;
 }
 
-.btn-res-secondary {
-    flex: 1;
-    background: #fff;
-    color: #333;
-    border: 1px solid #ddd;
-    padding: 16px;
-    font-size: 16px;
-    border-radius: 35px;
-    cursor: pointer;
-    transition: 0.3s;
+.winner-badge.final {
+    background: linear-gradient(45deg, #f1c40f, #f39c12);
+    color: white;
+    border-radius: 50%;
+    font-size: 1rem;
+    font-weight: 700;
+    width: 50px;
+    height: 50px;
+    top: -25px;
+    right: 50%;
+    transform: translateX(50%);
+    border: 3px solid white;
+    box-shadow: 0 8px 20px rgba(241, 196, 15, 0.5);
 }
 
-.btn-res-primary:hover {
-    background: #ee5253;
+.candidate-rank {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #a0aec0;
+}
+
+.candidate-card-result.winner .candidate-rank { color: #3498db; }
+.candidate-card-result.final-winner .candidate-rank { color: #f39c12; }
+
+.candidate-avatar-result {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-top: 5px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border: 3px solid white;
+}
+
+.candidate-name-result {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2d3748;
+  text-align: center;
+  margin: 5px 0;
+}
+
+.vote-bar-container {
+  width: 100%;
+  height: 12px;
+  background-color: #edf2f7;
+  border-radius: 6px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.vote-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #a0aec0, #718096);
+  border-radius: 6px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.candidate-card-result.winner .vote-bar { background: linear-gradient(90deg, #3498db, #5dade2); }
+.candidate-card-result.final-winner .vote-bar { background: linear-gradient(90deg, #f1c40f, #f39c12); }
+
+.vote-details {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #718096;
+  margin-top: 8px;
+}
+
+.vote-count { font-weight: 700; }
+.vote-percent { font-weight: 700; color: #2d3748; }
+
+.candidate-card-result.winner .vote-percent { color: #3498db; }
+.candidate-card-result.final-winner .vote-percent { color: #f39c12; }
+
+.loading, .no-data, .error-page {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.2rem;
+  color: #718096;
+  font-weight: 600;
+}
+
+.footer-actions {
+    margin-top: 50px;
+    z-index: 10;
+}
+
+.btn-back {
+    padding: 12px 30px;
+    border-radius: 30px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #4a5568;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.btn-back:hover {
+    background: #f8f9fa;
+    border-color: #ff6b6b;
+    color: #ff6b6b;
     transform: translateY(-2px);
-}
-
-/* --- ANIMATION --- */
-@keyframes fadeInLeft {
-    from { opacity: 0; transform: translateX(-30px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-@media (max-width: 600px) {
-    .results-card { padding: 30px 20px; }
-    .results-header h1 { font-size: 28px; }
-    .results-footer-actions { flex-direction: column; }
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }

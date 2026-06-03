@@ -49,7 +49,6 @@ const Header: React.FC = () => {
         <ul className="nav-links">
           <li onClick={navigateByRole}>Trang chủ</li>
           <li onClick={() => navigate("/elections")}>Cuộc bầu cử</li>
-          <li onClick={() => navigate("/results")}>Kết quả</li>
         </ul>
 
         <div className="nav-auth">

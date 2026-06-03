@@ -9,7 +9,7 @@ export const cryptoApi = {
     electionId: number;
     roundId: number;
     candidateId: number;
-    messageToken: string; // Đã đổi tên khớp khít với DTO hệ thống
+    messageToken: string;
     signature: string;
   }) => {
     return axiosClient.post('/api/votes/submit-anonymous', voteData);

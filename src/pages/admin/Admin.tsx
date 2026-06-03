@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../../assets/css/admin.css";
 import userApi from "../../api/userApi.ts";
 import Swal from "sweetalert2";
+import Dashboard from "./Dashboard.tsx";
 
 interface AccountUser {
     id: number;
@@ -323,23 +324,7 @@ const Admin: React.FC = () => {
                     )}
 
                     {activeMenu === "monitor" && (
-                        <div className="monitor-section">
-                            <h3>Giám sát hệ thống</h3>
-                            <div className="stats-grid">
-                                <div className="stat-card">
-                                    <span className="stat-label">Tổng số cuộc bầu cử</span>
-                                    <span className="stat-value">124</span>
-                                </div>
-                                <div className="stat-card">
-                                    <span className="stat-label">Phiếu bầu trong ngày</span>
-                                    <span className="stat-value text-green">2,540</span>
-                                </div>
-                                <div className="stat-card">
-                                    <span className="stat-label">Tải hệ thống</span>
-                                    <span className="stat-value text-orange">12%</span>
-                                </div>
-                            </div>
-                        </div>
+                        <Dashboard />
                     )}
                 </main>
             </div>

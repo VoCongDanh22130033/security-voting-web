@@ -257,7 +257,7 @@ const HostDashboard: React.FC = () => {
                                         </button>
                                         {user?.roles?.includes("ROLE_ORGANIZER") && (
                                             <>
-                                              <button className="btn-action btn-edit" onClick={() => { setEditingElection(election); setSubView("create"); }}>
+                                              <button className="btn-action btn-edit" onClick={() => navigate(`/edit-election/${election.id}`)}>
                                                 Sửa
                                               </button>
                                               <button className="btn-action btn-delete" onClick={() => handleDelete(election.id)}>
@@ -276,14 +276,7 @@ const HostDashboard: React.FC = () => {
                   )}
 
                   {subView === "create" && (
-                      <CreateElection
-                          editData={editingElection}
-                          onComplete={() => {
-                            setSubView("list");
-                            setEditingElection(null);
-                            fetchElections();
-                          }}
-                      />
+                      <CreateElection />
                   )}
                 </div>
             ) : (

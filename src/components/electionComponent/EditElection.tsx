@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { electionApi } from '../../api/electionApi';
 
-// Giao diện (Interface) cho các đối tượng dữ liệu
 interface Candidate {
     id?: number;
     name: string;
@@ -27,7 +26,6 @@ const EditElection: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    // States
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [totalRounds, setTotalRounds] = useState<number>(1);
@@ -35,21 +33,17 @@ const EditElection: React.FC = () => {
     const [previewImageUrl, setPreviewImageUrl] = useState('');
     const [roundsConfig, setRoundsConfig] = useState<RoundTimeConfig[]>([]);
 
-    // Danh sách ứng viên gốc của cuộc bầu cử
     const [currentCandidates, setCurrentCandidates] = useState<Candidate[]>([]);
-
     const [localCandidates, setLocalCandidates] = useState<Candidate[]>([]);
     const [selectedCandidateIds, setSelectedCandidateIds] = useState<number[]>([]);
     const [initialCandidateIds, setInitialCandidateIds] = useState<number[]>([]);
 
-    // State cho form thêm ứng viên
     const [showAddForm, setShowAddForm] = useState(false);
     const [newName, setNewName] = useState('');
     const [newParty, setNewParty] = useState('');
     const [newBio, setNewBio] = useState('');
     const [newImageBase64, setNewImageBase64] = useState('');
 
-    // Fetch dữ liệu ban đầu
     useEffect(() => {
         const fetchData = async () => {
             if (id) {
@@ -68,14 +62,13 @@ const EditElection: React.FC = () => {
                     const roundsData = roundsRes.data.sort((a: RoundTimeConfig, b: RoundTimeConfig) => a.roundNumber - b.roundNumber);
                     setRoundsConfig(roundsData.map((r: any) => ({
                         ...r,
-                        // Cắt bớt phần giây/mili-giây để phù hợp với input datetime-local nếu cần
                         startTime: r.startTime ? r.startTime.substring(0, 16) : '',
                         endTime: r.endTime ? r.endTime.substring(0, 16) : ''
                     })));
 
                     const cands = electionData.candidates || [];
                     setCurrentCandidates(cands);
-                    
+
                     const currentIds = cands.map((c: Candidate) => c.id);
                     setSelectedCandidateIds(currentIds);
                     setInitialCandidateIds(currentIds);
@@ -133,7 +126,7 @@ const EditElection: React.FC = () => {
     };
 
     const handleToggleDbCandidate = (candidateId: number) => {
-        setSelectedCandidateIds(prev => 
+        setSelectedCandidateIds(prev =>
             prev.includes(candidateId) ? prev.filter(id => id !== candidateId) : [...prev, candidateId]
         );
     };
@@ -174,17 +167,15 @@ const EditElection: React.FC = () => {
                     ...r,
                     title: totalRounds > 1 ? `${title} Vòng ${r.roundNumber}` : title,
                     maxAdvanceCount: r.roundNumber === totalRounds ? 1 : r.maxAdvanceCount,
-                    // THÊM GIÂY VÀO THỜI GIAN ĐỂ KHÔNG BỊ LỖI BACKEND PARSE
                     startTime: r.startTime.length === 16 ? `${r.startTime}:00` : r.startTime,
                     endTime: r.endTime.length === 16 ? `${r.endTime}:00` : r.endTime
                 })),
                 candidateIds: selectedCandidateIds,
                 newCandidates: localCandidates,
-                initialCandidateIds: initialCandidateIds 
+                initialCandidateIds: initialCandidateIds
             };
 
             await electionApi.update(Number(id), payload);
-
             await Swal.fire("Thành công!", "Cuộc bầu cử đã được cập nhật.", "success");
             navigate('/host-dashboard');
 
@@ -198,7 +189,7 @@ const EditElection: React.FC = () => {
         <div className="profile-container" style={{ maxWidth: '850px', margin: '30px auto', padding: '25px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
             <div className="info-section">
                 <h2 style={{ textAlign: 'center', marginBottom: '30px', color: '#2c3e50', fontWeight: '700' }}>CHỈNH SỬA CUỘC BẦU CỬ</h2>
-                 <form onSubmit={handleSubmitElection} className="edit-form">
+                <form onSubmit={handleSubmitElection} className="edit-form">
                     {/* THÔNG TIN CHUNG */}
                     <div style={{ marginBottom: '25px', paddingBottom: '15px', borderBottom: '1px solid #eaedf1' }}>
                         <div className="form-group">
@@ -228,32 +219,7 @@ const EditElection: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* CẤU HÌNH VÒNG ĐẤU */}
-                    <div style={{ marginBottom: '25px' }}>
-                        {roundsConfig.map((round) => (
-                            <div key={round.roundNumber} style={{ padding: '15px', background: '#f8fafc', borderRadius: '8px', marginBottom: '15px' }}>
-                                <h5>Vòng {round.roundNumber}</h5>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                    <div className="form-group">
-                                        <label>Bắt đầu</label>
-                                        <input type="datetime-local" required value={round.startTime} onChange={e => handleRoundConfigChange(round.roundNumber, 'startTime', e.target.value)} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Kết thúc</label>
-                                        <input type="datetime-local" required value={round.endTime} onChange={e => handleRoundConfigChange(round.roundNumber, 'endTime', e.target.value)} />
-                                    </div>
-                                </div>
-                                {round.roundNumber < totalRounds && (
-                                    <div className="form-group" style={{ marginTop: '12px' }}>
-                                        <label>Số người đi tiếp</label>
-                                        <input type="number" min={1} required value={round.maxAdvanceCount} onChange={e => handleRoundConfigChange(round.roundNumber, 'maxAdvanceCount', Math.max(1, Number(e.target.value)))} />
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* QUẢN LÝ ỨNG VIÊN */}
+                    {/* QUẢN LÝ ỨNG VIÊN (ĐÃ CHUYỂN LÊN TRÊN) */}
                     <div style={{ marginBottom: '25px', padding: '15px', borderRadius: '8px', background: '#f0fdf4', border: '1px dashed #2ecc71' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                             <h4 style={{ color: '#166534', fontSize: '14px', margin: 0, fontWeight: '600' }}>➕ Khung thêm nhanh nhiều ứng cử viên thủ công</h4>
@@ -327,8 +293,33 @@ const EditElection: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* CẤU HÌNH VÒNG ĐẤU (ĐÃ CHUYỂN XUỐNG DƯỚI) */}
+                    <div style={{ marginBottom: '25px' }}>
+                        {roundsConfig.map((round) => (
+                            <div key={round.roundNumber} style={{ padding: '15px', background: '#f8fafc', borderRadius: '8px', marginBottom: '15px', border: '1px solid #e2e8f0' }}>
+                                <h5 style={{ margin: '0 0 10px 0', color: '#1e293b' }}>Vòng {round.roundNumber}</h5>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                    <div className="form-group">
+                                        <label>Bắt đầu</label>
+                                        <input type="datetime-local" required value={round.startTime} onChange={e => handleRoundConfigChange(round.roundNumber, 'startTime', e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Kết thúc</label>
+                                        <input type="datetime-local" required value={round.endTime} onChange={e => handleRoundConfigChange(round.roundNumber, 'endTime', e.target.value)} />
+                                    </div>
+                                </div>
+                                {round.roundNumber < totalRounds && (
+                                    <div className="form-group" style={{ marginTop: '12px' }}>
+                                        <label style={{ fontSize: '12px', color: '#166534' }}>Số người đi tiếp</label>
+                                        <input type="number" min={1} required value={round.maxAdvanceCount} onChange={e => handleRoundConfigChange(round.roundNumber, 'maxAdvanceCount', Math.max(1, Number(e.target.value)))} style={{ width: '100%', maxWidth: '200px' }} />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
                     <div className="action-section">
-                        <button type="submit" className="change-password-btn" style={{ width: '100%', padding: '14px' }}>
+                        <button type="submit" className="change-password-btn" style={{ width: '100%', padding: '14px', background: '#3498db', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
                             Lưu Thay Đổi
                         </button>
                     </div>

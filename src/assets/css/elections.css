@@ -214,3 +214,34 @@
 .avatar-edit-preview:hover .avatar-overlay {
     opacity: 1;
 }
+/* --- NÚT QUAY LẠI ĐẶT Ở ĐÁY TRANG --- */
+.footer-actions {
+    margin-top: 48px;
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Căn giữa nút bấm */
+}
+
+.btn-back-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px; /* Tăng kích thước nút một chút để dễ bấm ở đáy trang */
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.btn-back-home:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #ff7a00; /* Màu cam đồng bộ với theme hệ thống */
+    transform: translateY(-2px); /* Hiệu ứng nổi nhẹ khi hover */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}

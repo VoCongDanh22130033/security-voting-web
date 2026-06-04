@@ -19,6 +19,8 @@ import ElectionDetail from "./components/electionComponent/ElectionDetail.tsx";
 import Candidates from "./pages/Candidates.tsx";
 import Results from "./pages/Results.tsx";
 import VerifyEmail from "./pages/VerifyEmail.tsx";
+import PublicBulletinBoard from "./pages/PublicBulletinBoard.tsx";
+import VerifyVote from "./pages/VerifyVote.tsx";
 
 function App() {
     return (
@@ -29,6 +31,8 @@ function App() {
                         <Route element={<UserLayout />}>
                             <Route path="/" element={<Home />} />
                             <Route path="/home" element={<Home />} />
+                            <Route path="/bulletin-board/:electionId" element={<PublicBulletinBoard />} />
+                            <Route path="/verify-vote" element={<VerifyVote />} />
                         </Route>
                         <Route path="/login" element={<Login/>}/>
 

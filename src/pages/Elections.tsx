@@ -78,7 +78,7 @@ const Elections = () => {
 
                 return (
                     <motion.div key={election.id} className="election-card" whileHover={{ scale: 1.02 }}>
-                      <div className="card-image">
+                      <div className="card-image" onClick={() => navigate(`/election-detail/${election.id}`)} style={{ cursor: "pointer" }}>
                         <img src={election.image || 'https://via.placeholder.com/400x200'} alt={election.title} />
                         <span className={`status-badge badge-${statusUpper.toLowerCase()}`}>
                             {getStatusText(election.status)}
@@ -88,7 +88,15 @@ const Elections = () => {
                         <h3>{election.title}</h3>
                         <p>{election.description}</p>
                       </div>
-                      <div className="card-footer">
+                      <div className="card-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <button
+                            className="action-btn btn-secondary"
+                            onClick={() => navigate(`/election-detail/${election.id}`)}
+                            style={{ backgroundColor: '#f0f0f0', color: '#333', border: '1px solid #ccc' }}
+                        >
+                            Xem Chi Tiết
+                        </button>
+                        
                         {/* ĐÃ SỬA ĐIỀU KIỆN ĐIỀU HƯỚNG ĐA NHIỆM CHUẨN XÁC */}
                         {isFinished ? (
                             <button
@@ -116,7 +124,18 @@ const Elections = () => {
                 Không có cuộc bầu cử nào {getStatusText(filter).toLowerCase()}.
               </div>
           )}
+          <div className="footer-actions">
+
+          </div>
+
         </div>
+        <button className="btn-back-home" onClick={() => navigate("/")}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Quay lại trang chủ
+        </button>
+
       </div>
   );
 };

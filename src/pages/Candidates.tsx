@@ -323,6 +323,7 @@ const Candidates = () => {
           <button className="btn-back-bottom" onClick={() => navigate(-1)}>
             Quay lại trang trước
           </button>
+
           <button
               className="btn-view-results-bottom"
               onClick={() => {

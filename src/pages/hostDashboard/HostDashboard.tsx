@@ -22,7 +22,6 @@ const HostDashboard: React.FC = () => {
   const [subView, setSubView] = useState<"list" | "create">("list");
   const [elections, setElections] = useState<Election[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [editingElection, setEditingElection] = useState<Election | null>(null);
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,11 +31,31 @@ const HostDashboard: React.FC = () => {
       election.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredVoters = voters.filter((voter) => {
+    const roleId = voter.roleId || voter.user?.roleId;
+    const roleName = (voter.roleName || voter.user?.roleName || "").toUpperCase();
+
+    const isAdmin = roleId === 1 || roleName.includes("ADMIN");
+
+    if (isAdmin) return false;
+
+    return (
+        voter.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        voter.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
   useEffect(() => {
     if (activeTab === "elections" && subView === "list") {
       fetchElections();
     }
   }, [activeTab, subView]);
+
+  useEffect(() => {
+    if (activeTab === "voters") {
+      fetchVoters();
+    }
+  }, [activeTab]);
 
   const fetchElections = async () => {
     setLoading(true);
@@ -45,6 +64,18 @@ const HostDashboard: React.FC = () => {
       setElections(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách bầu cử:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchVoters = async () => {
+    setLoading(true);
+    try {
+      const data = await userApi.getAll();
+      setVoters(data);
+    } catch (error) {
+      console.error("Lỗi lấy danh sách cử tri:", error);
     } finally {
       setLoading(false);
     }
@@ -66,28 +97,9 @@ const HostDashboard: React.FC = () => {
     }
   };
 
-  const fetchVoters = async () => {
-    setLoading(true);
-    try {
-      const data = await userApi.getAll();
-      setVoters(data);
-    } catch (error) {
-      console.error("Lỗi lấy danh sách cử tri:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === "voters") {
-      fetchVoters();
-    }
-  }, [activeTab]);
-
   const handleViewVoterDetail = async (id: number) => {
     try {
       Swal.fire({ title: "Đang tải...", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
       const voterData = await userApi.getById(id);
       const isAccountLocked = voterData.user?.isLock === 1;
 
@@ -95,12 +107,12 @@ const HostDashboard: React.FC = () => {
         title: "<strong>Thông Tin Chi Tiết Cử Tri</strong>",
         icon: "info",
         html: `
-        <div style="text-align: left; font-size: 15px; line-height: 2;">
+        <div style="text-align: left; font-size: 15px; line-height: 2; padding: 10px 20px;">
           <p><strong>Mã ID cử tri:</strong> ${voterData.id}</p>
           <p><strong>Họ và Tên:</strong> ${voterData.fullName || "Chưa thiết lập"}</p>
           <p><strong>Địa chỉ Email:</strong> ${voterData.email}</p>
           <p><strong>Số điện thoại:</strong> ${voterData.phone || "Chưa cập nhật"}</p>
-          <p><strong>Trạng thái hệ thống:</strong> ${isAccountLocked ? '<span style="color: red; font-weight: bold;">Đã bị khóa (is_lock = 1)</span>' : '<span style="color: green; font-weight: bold;">Bình thường (is_lock = 0)</span>'}</p>
+          <p><strong>Trạng thái:</strong> ${isAccountLocked ? '<span style="color: #ef4444; font-weight: bold;">Đã bị khóa</span>' : '<span style="color: #10b981; font-weight: bold;">Hoạt động</span>'}</p>
         </div>
       `,
         confirmButtonColor: "#ff7a00",
@@ -116,15 +128,14 @@ const HostDashboard: React.FC = () => {
     }
   };
 
-  // --- HÀM XỬ LÝ KHÓA TÀI KHOẢN CỬ TRI ---
   const handleLockVoter = async (id: number, fullName: string) => {
     Swal.fire({
       title: "Xác nhận khóa tài khoản",
       text: `Bạn có chắc chắn muốn khóa tài khoản cử tri "${fullName}" không?`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
       confirmButtonText: "Khóa tài khoản",
       cancelButtonText: "Hủy",
       backdrop: `rgba(0,0,0,0.4) blur(4px)`
@@ -132,16 +143,13 @@ const HostDashboard: React.FC = () => {
       if (result.isConfirmed) {
         try {
           await userApi.lockAccount(id);
-
           Swal.fire({
             title: "Đã khóa!",
-            text: "Tài khoản cử tri đã bị khóa và hủy trạng thái xác thực hệ thống.",
+            text: "Tài khoản cử tri đã bị khóa thành công.",
             icon: "success",
             timer: 2000,
             showConfirmButton: false
           });
-
-          // Tải lại danh sách sau khi cập nhật thành công trạng thái
           fetchVoters();
         } catch (error: any) {
           Swal.fire({
@@ -158,11 +166,11 @@ const HostDashboard: React.FC = () => {
   const handleDelete = async (id: number) => {
     Swal.fire({
       title: "Xác nhận xóa",
-      text: "Bạn chắc chắn muốn xóa cuộc bầu cử này!",
+      text: "Bạn chắc chắn muốn xóa cuộc bầu cử này?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#ff7a00",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
       confirmButtonText: "Xác Nhận",
       cancelButtonText: "Hủy",
       backdrop: `rgba(0,0,0,0.4) blur(4px)`
@@ -172,7 +180,6 @@ const HostDashboard: React.FC = () => {
           await electionApi.delete(id);
           Swal.fire({
             title: "Đã Xóa Thành Công!",
-            text: "Dữ liệu đã được cập nhật thành công.",
             icon: "success",
             timer: 1500,
             showConfirmButton: false,
@@ -181,7 +188,7 @@ const HostDashboard: React.FC = () => {
         } catch (error) {
           Swal.fire({
             title: "Lỗi!",
-            text: "Không thể thực hiện ẩn dữ liệu. Vui lòng thử lại sau.",
+            text: "Không thể xóa dữ liệu. Vui lòng thử lại sau.",
             icon: "error",
             confirmButtonColor: "#ff7a00"
           });
@@ -198,11 +205,11 @@ const HostDashboard: React.FC = () => {
             <nav>
               <ul>
                 <li className={activeTab === "elections" ? "active" : ""}
-                    onClick={() => { setActiveTab("elections"); setSubView("list"); }}>
+                    onClick={() => { setActiveTab("elections"); setSubView("list"); setSearchTerm(""); }}>
                   📊 Quản lý Bầu cử
                 </li>
                 <li className={activeTab === "voters" ? "active" : ""}
-                    onClick={() => setActiveTab("voters")}>
+                    onClick={() => { setActiveTab("voters"); setSearchTerm(""); }}>
                   👥 Quản lý Cử tri
                 </li>
               </ul>
@@ -214,43 +221,50 @@ const HostDashboard: React.FC = () => {
                 <div className="management-section">
                   {subView === "list" && (
                       <>
-                        <div className="section-header">
+                        <div className="section-header-flex">
                           <h3 className="section-title">Danh sách cuộc bầu cử</h3>
-                          <button className="btn-add-new" onClick={() => { setEditingElection(null); setSubView("create"); }}>
+                          <button className="btn-add-new" onClick={() => setSubView("create")}>
                             + Tạo cuộc bầu cử mới
                           </button>
                         </div>
-                        <div className="search-box">
-                          <input
-                              type="text"
-                              placeholder="Tìm kiếm theo tên cuộc bầu cử..."
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                              className="search-input"
-                          />
-                          {searchTerm && (
-                              <button className="clear-search" onClick={() => setSearchTerm("")}>&times;</button>
-                          )}
+
+                        <div className="dashboard-controls">
+                          <div className="search-box">
+                            <span className="search-icon">🔍</span>
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm cuộc bầu cử..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="search-input"
+                            />
+                            {searchTerm && (
+                                <button className="clear-search" onClick={() => setSearchTerm("")}>&times;</button>
+                            )}
+                          </div>
                         </div>
+
                         {loading ? (
-                            <div className="loading-state">Đang tải dữ liệu...</div>
+                            <div className="loading-state">
+                              <div className="spinner"></div> Đang tải dữ liệu...
+                            </div>
                         ) : (
                             <div className="table-wrapper">
-                              <table className="admin-table">
+                              <table className="modern-table">
                                 <thead>
                                 <tr>
-                                  <th>STT</th>
+                                  <th style={{ width: "80px" }}>STT</th>
                                   <th>Tên cuộc bầu cử</th>
-                                  <th>Trạng thái</th>
-                                  <th style={{ textAlign: "center" }}>Hành động</th>
+                                  <th style={{ width: "180px" }}>Trạng thái</th>
+                                  <th style={{ width: "220px", textAlign: "center" }}>Hành động</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 {filteredElections.map((election, index) => (
                                     <tr key={election.id}>
-                                      <td className="election-id">{index + 1}</td>
-                                      <td className="election-name-cell">{election.title}</td>
-                                      <td className="election-status">{renderStatusBadge(election.status)}</td>
+                                      <td>{index + 1}</td>
+                                      <td className="font-medium text-dark">{election.title}</td>
+                                      <td>{renderStatusBadge(election.status)}</td>
                                       <td className="action-cells">
                                         <button className="btn-action btn-view" onClick={() => navigate(`/election-detail/${election.id}`)}>
                                           Xem
@@ -268,6 +282,11 @@ const HostDashboard: React.FC = () => {
                                       </td>
                                     </tr>
                                 ))}
+                                {filteredElections.length === 0 && (
+                                    <tr>
+                                      <td colSpan={4} className="empty-state">Không tìm thấy cuộc bầu cử nào</td>
+                                    </tr>
+                                )}
                                 </tbody>
                               </table>
                             </div>
@@ -275,72 +294,86 @@ const HostDashboard: React.FC = () => {
                       </>
                   )}
 
-                  {subView === "create" && (
-                      <CreateElection />
-                  )}
+                  {subView === "create" && <CreateElection />}
                 </div>
             ) : (
                 <div className="management-section">
-                  {activeTab === "voters" && (
-                      <div className="management-section">
-                        <div className="section-header-flex">
-                          <h3 className="section-title">Danh sách cử tri hệ thống</h3>
-                        </div>
+                  <div className="section-header-flex">
+                    <h3 className="section-title">Danh sách cử tri hệ thống</h3>
+                  </div>
 
-                        {loading ? (
-                            <div className="loading-state">Đang tải dữ liệu cử tri...</div>
-                        ) : (
-                            <table className="elections-table">
-                              <thead>
-                              <tr className="table-header">
-                                <th>STT</th>
-                                <th>Họ và Tên</th>
-                                <th>Email</th>
-                                <th>Số điện thoại</th>
-                                <th>Vai Trò</th>
-                                <th>Thao tác</th>
+                  <div className="dashboard-controls">
+                    <div className="search-box">
+                      <span className="search-icon">🔍</span>
+                      <input
+                          type="text"
+                          placeholder="Tìm theo tên hoặc email..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="search-input"
+                      />
+                      {searchTerm && (
+                          <button className="clear-search" onClick={() => setSearchTerm("")}>&times;</button>
+                      )}
+                    </div>
+                  </div>
+
+                  {loading ? (
+                      <div className="loading-state">
+                        <div className="spinner"></div> Đang tải dữ liệu cử tri...
+                      </div>
+                  ) : (
+                      <div className="table-wrapper">
+                        <table className="modern-table">
+                          <thead>
+                          <tr>
+                            <th style={{ width: "80px" }}>STT</th>
+                            <th>Họ và Tên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Vai Trò</th>
+                            <th style={{ width: "200px", textAlign: "center" }}>Thao tác</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                          {filteredVoters.map((voter, index) => {
+                            const isLocked = voter.isLock === 1 || voter.user?.isLock === 1;
+                            return (
+                                <tr key={voter.id}>
+                                  <td>{index + 1}</td>
+                                  <td className="font-medium text-dark">{voter.fullName}</td>
+                                  <td>{voter.email}</td>
+                                  <td>{voter.phone || "—"}</td>
+                                  <td>
+                                    <span className="role-tag">{voter.roleName || "Cử tri"}</span>
+                                  </td>
+                                  <td className="action-cells">
+                                    <button className="btn-action btn-view" onClick={() => handleViewVoterDetail(voter.id)}>
+                                      Chi tiết
+                                    </button>
+                                    <button
+                                        className="btn-action btn-lock"
+                                        onClick={() => handleLockVoter(voter.id, voter.fullName)}
+                                        disabled={isLocked}
+                                        style={{
+                                          backgroundColor: isLocked ? "#cbd5e1" : "#fee2e2",
+                                          color: isLocked ? "#94a3b8" : "#ef4444",
+                                          cursor: isLocked ? "not-allowed" : "pointer"
+                                        }}
+                                    >
+                                      {isLocked ? "Đã khóa" : "Khóa"}
+                                    </button>
+                                  </td>
+                                </tr>
+                            );
+                          })}
+                          {filteredVoters.length === 0 && (
+                              <tr>
+                                <td colSpan={6} className="empty-state">Không tìm thấy cử tri nào</td>
                               </tr>
-                              </thead>
-                              <tbody>
-                              {voters.map((voter, index) => {
-                                // Kiểm tra biến isLock dựa theo cấu trúc đối tượng trả về từ API getAll()
-                                const isLocked = voter.isLock === 1 || voter.user?.isLock === 1;
-
-                                return (
-                                    <tr key={voter.id}>
-                                      <td className="election-id">{index + 1}</td>
-                                      <td className="election-name-cell">{voter.fullName}</td>
-                                      <td className="election-name-cell">{voter.email}</td>
-                                      <td className="election-phone-cell">{voter.phone || "N/A"}</td>
-                                      <td style={{ fontSize: '13px', color: '#64748b', fontWeight: '400' }}>
-                                        {voter.roleName || "N/A"}
-                                      </td>
-                                      <td className="action-cells">
-                                        <button
-                                            className="btn-action btn-view"
-                                            onClick={() => handleViewVoterDetail(voter.id)}
-                                        >
-                                          Chi tiết
-                                        </button>
-                                        <button
-                                            className="btn-action btn-delete"
-                                            onClick={() => handleLockVoter(voter.id, voter.fullName)}
-                                            disabled={isLocked}
-                                            style={{
-                                              backgroundColor: isLocked ? "#94a3b8" : "#ef4444",
-                                              opacity: isLocked ? 0.6 : 1,
-                                              cursor: isLocked ? "not-allowed" : "pointer"
-                                            }}
-                                        >
-                                          {isLocked ? "Đã khóa" : "Khóa"}
-                                        </button>
-                                      </td>
-                                    </tr>
-                                );
-                              })}
-                              </tbody>
-                            </table>
-                        )}
+                          )}
+                          </tbody>
+                        </table>
                       </div>
                   )}
                 </div>

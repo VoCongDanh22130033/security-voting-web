@@ -166,8 +166,7 @@ const Admin: React.FC = () => {
                 {/* Sidebar trái */}
                 <aside className="admin-sidebar">
                     <div className="admin-info">
-                        <div className="admin-avatar">SA</div>
-                        <span>Super Admin</span>
+
                     </div>
                     <nav>
                         <div className="menu-group">Quản lý tài khoản</div>
@@ -258,16 +257,18 @@ const Admin: React.FC = () => {
                         <div className="table-section">
                             <div className="content-header">
                                 <h3>Quản lý Tài khoản Cử tri</h3>
-                                <div className="search-bar">
-                                    <input
-                                        type="text"
-                                        placeholder="Tìm kiếm Email/Họ tên..."
-                                        value={searchVoter}
-                                        onChange={(e) => setSearchVoter(e.target.value)}
-                                    />
+                                <div className="header-controls">
+                                    {/* Đã bọc class wrapper để hiển thị icon kính lúp và border mượt */}
+                                    <div className="search-input-wrapper">
+                                        <input
+                                            type="text"
+                                            placeholder="Tìm kiếm Email/Họ tên..."
+                                            value={searchVoter}
+                                            onChange={(e) => setSearchVoter(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-
                             {loading ? (
                                 <div style={{ textAlign: "center", padding: "20px" }}>Đang tải dữ liệu cử tri...</div>
                             ) : (

@@ -1,9 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
 import "../assets/css/home.css";
 
 const Home: React.FC = () => {
-    return (
+    const navigate = useNavigate(); // 2. Khởi tạo hook điều hướng
 
+    return (
         <div className="home-container">
             <main className="home-main">
                 <div className="home-content">
@@ -19,9 +21,21 @@ const Home: React.FC = () => {
                         </p>
 
                         <div className="hero-actions">
-                            <button className="btn-primary">Bắt đầu ngay</button>
-                            <button className="btn-secondary">Xem cuộc bầu cử</button>
+                            {/* 3. Thêm sự kiện onClick điều hướng tới trang /elections */}
+                            <button
+                                className="btn-primary"
+                                onClick={() => navigate("/elections")}
+                            >
+                                Bắt đầu ngay
+                            </button>
+                            <button
+                                className="btn-secondary"
+                                onClick={() => navigate("/elections")}
+                            >
+                                Xem cuộc bầu cử
+                            </button>
                         </div>
+
                     </div>
 
                     <div className="image-section">

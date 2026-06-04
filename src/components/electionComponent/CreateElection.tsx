@@ -37,7 +37,6 @@ export const CreateElection: React.FC = () => {
     const [newBio, setNewBio] = useState('');
     const [newImageBase64, setNewImageBase64] = useState('');
 
-    // Chỉ fetch ứng viên khi người dùng thực sự cần
     const fetchDbCandidates = async () => {
         try {
             const response = await electionApi.getAllCandidates();
@@ -48,7 +47,8 @@ export const CreateElection: React.FC = () => {
     };
 
     useEffect(() => {
-        // Không fetch ứng viên khi component được tải lần đầu
+        // Tự động gọi fetch ứng viên từ database để hiển thị ở lưới phía trên
+        fetchDbCandidates();
     }, []);
 
     const handleTotalRoundsChange = (rounds: number) => {
@@ -67,8 +67,8 @@ export const CreateElection: React.FC = () => {
             }
 
             newConfigs.push(
-                existingConfig 
-                    ? { ...existingConfig, maxAdvanceCount: maxAdvance } 
+                existingConfig
+                    ? { ...existingConfig, maxAdvanceCount: maxAdvance }
                     : { roundNumber: i, startTime: '', endTime: '', maxAdvanceCount: maxAdvance, title: `${title} Vòng ${i}` }
             );
         }
@@ -172,7 +172,6 @@ export const CreateElection: React.FC = () => {
             };
 
             await electionApi.createMultiRound(payload);
-
             await Swal.fire("Thành công!", `Cuộc bầu cử gồm ${totalRounds} vòng đã được tạo lập hoàn chỉnh.`, "success");
 
             setTitle('');
@@ -181,7 +180,7 @@ export const CreateElection: React.FC = () => {
             handleTotalRoundsChange(1);
             setSelectedCandidateIds([]);
             setLocalCandidates([]);
-            setDbCandidates([]);
+            fetchDbCandidates();
 
         } catch (err: any) {
             console.error(err);
@@ -254,68 +253,7 @@ export const CreateElection: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* KHU VỰC CẤU HÌNH THỜI GIAN THEO VÒNG */}
-                    <div style={{ marginBottom: '25px', padding: '18px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                        <h4 style={{ color: '#4a90e2', fontSize: '14px', margin: '0 0 15px 0', fontWeight: '700' }}>⏱️ Thiết lập khung thời gian & Chỉ tiêu thắng cuộc từng vòng</h4>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            {roundsConfig.map((round) => (
-                                <div
-                                    key={round.roundNumber}
-                                    style={{ padding: '15px', background: '#fff', borderRadius: '6px', border: '1px solid #cbd5e1', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
-                                >
-                                    <h5 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <span style={{ background: '#4a90e2', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>VÒNG {round.roundNumber}</span>
-                                        Cấu hình chi tiết Vòng {round.roundNumber}
-                                    </h5>
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                        <div className="form-group">
-                                            <label style={{ fontSize: '12px', color: '#475569' }}>Thời gian mở hòm phiếu vòng {round.roundNumber} <span style={{ color: 'red' }}>*</span></label>
-                                            <input
-                                                type="datetime-local"
-                                                required
-                                                value={round.startTime}
-                                                onChange={e => handleRoundConfigChange(round.roundNumber, 'startTime', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label style={{ fontSize: '12px', color: '#475569' }}>Thời gian khóa hòm phiếu vòng {round.roundNumber} <span style={{ color: 'red' }}>*</span></label>
-                                            <input
-                                                type="datetime-local"
-                                                required
-                                                value={round.endTime}
-                                                onChange={e => handleRoundConfigChange(round.roundNumber, 'endTime', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {round.roundNumber < totalRounds ? (
-                                        <div className="form-group" style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed #e2e8f0' }}>
-                                            <label style={{ fontSize: '12px', color: '#166534', fontWeight: '600' }}>
-                                                🎯 Số lượng ứng viên cao phiếu nhất ở Vòng {round.roundNumber} sẽ lọt vào Vòng {round.roundNumber + 1} <span style={{ color: 'red' }}>*</span>
-                                            </label>
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                required
-                                                value={round.maxAdvanceCount}
-                                                onChange={e => handleRoundConfigChange(round.roundNumber, 'maxAdvanceCount', Math.max(1, Number(e.target.value)))}
-                                                placeholder="Ví dụ: 5"
-                                                style={{ marginTop: '5px', padding: '8px', width: '100%', maxWidth: '200px' }}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', color: '#b45309', fontSize: '12px', fontWeight: '500' }}>
-                                            👑 Vòng {round.roundNumber} là Vòng Chung Kết - Người cao phiếu nhất vòng này sẽ là người chiến thắng cuối cùng.
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* KHU VỰC THÊM ỨNG VIÊN THỦ CÔNG & CHỌN LƯỚI */}
+                    {/* KHU VỰC 2: QUẢN LÝ VÀ THÊM ỨNG VIÊN (ĐÃ CHUYỂN LÊN TRÊN) */}
                     <div style={{ marginBottom: '25px', padding: '15px', borderRadius: '8px', background: '#f0fdf4', border: '1px dashed #2ecc71' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                             <h4 style={{ color: '#166534', fontSize: '14px', margin: 0, fontWeight: '600' }}>➕ Khung thêm nhanh nhiều ứng cử viên thủ công</h4>
@@ -386,6 +324,67 @@ export const CreateElection: React.FC = () => {
                                     );
                                 })}
                             </div>
+                        </div>
+                    </div>
+
+                    {/* KHU VỰC 3: CẤU HÌNH THỜI GIAN THEO VÒNG (ĐÃ CHUYỂN XUỐNG DƯỚI) */}
+                    <div style={{ marginBottom: '25px', padding: '18px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                        <h4 style={{ color: '#4a90e2', fontSize: '14px', margin: '0 0 15px 0', fontWeight: '700' }}>⏱️ Thiết lập khung thời gian & Chỉ tiêu thắng cuộc từng vòng</h4>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            {roundsConfig.map((round) => (
+                                <div
+                                    key={round.roundNumber}
+                                    style={{ padding: '15px', background: '#fff', borderRadius: '6px', border: '1px solid #cbd5e1', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
+                                >
+                                    <h5 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span style={{ background: '#4a90e2', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>VÒNG {round.roundNumber}</span>
+                                        Cấu hình chi tiết Vòng {round.roundNumber}
+                                    </h5>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                        <div className="form-group">
+                                            <label style={{ fontSize: '12px', color: '#475569' }}>Thời gian mở hòm phiếu vòng {round.roundNumber} <span style={{ color: 'red' }}>*</span></label>
+                                            <input
+                                                type="datetime-local"
+                                                required
+                                                value={round.startTime}
+                                                onChange={e => handleRoundConfigChange(round.roundNumber, 'startTime', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label style={{ fontSize: '12px', color: '#475569' }}>Thời gian khóa hòm phiếu vòng {round.roundNumber} <span style={{ color: 'red' }}>*</span></label>
+                                            <input
+                                                type="datetime-local"
+                                                required
+                                                value={round.endTime}
+                                                onChange={e => handleRoundConfigChange(round.roundNumber, 'endTime', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {round.roundNumber < totalRounds ? (
+                                        <div className="form-group" style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed #e2e8f0' }}>
+                                            <label style={{ fontSize: '12px', color: '#166534', fontWeight: '600' }}>
+                                                🎯 Số lượng ứng viên cao phiếu nhất ở Vòng {round.roundNumber} sẽ lọt vào Vòng {round.roundNumber + 1} <span style={{ color: 'red' }}>*</span>
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                required
+                                                value={round.maxAdvanceCount}
+                                                onChange={e => handleRoundConfigChange(round.roundNumber, 'maxAdvanceCount', Math.max(1, Number(e.target.value)))}
+                                                placeholder="Ví dụ: 5"
+                                                style={{ marginTop: '5px', padding: '8px', width: '100%', maxWidth: '200px' }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', color: '#b45309', fontSize: '12px', fontWeight: '500' }}>
+                                            👑 Vòng {round.roundNumber} là Vòng Chung Kết - Người cao phiếu nhất vòng này sẽ là người chiến thắng cuối cùng.
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </div>
 

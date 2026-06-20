@@ -6,6 +6,8 @@ export interface User {
   fullName: string;
   email: string;
   roles: string[];
+  user?: User;
+  imageUrl?: string;
   image_url?: string;
 }
 

@@ -1,0 +1,356 @@
+/* ─── Base ───────────────────────────────────────────────── */
+.er-page {
+  min-height: 100vh;
+  background: linear-gradient(150deg, #f0f4ff 0%, #faf5ff 50%, #f0f9ff 100%);
+  padding: 2rem 1.5rem 4rem;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  color: #1e293b;
+}
+
+/* ─── Header ─────────────────────────────────────────────── */
+.er-header {
+  text-align: center;
+  padding: 2.5rem 1rem 2rem;
+  max-width: 860px;
+  margin: 0 auto 2.5rem;
+}
+
+.er-header h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 800;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 1rem;
+  line-height: 1.2;
+}
+
+.er-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* ─── Status pills ───────────────────────────────────────── */
+.er-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.er-pill-open    { background: #dcfce7; color: #16a34a; border: 1px solid #86efac; }
+.er-pill-closed  { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+.er-pill-ended   { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+.er-pill-upcoming{ background: #fef9c3; color: #ca8a04; border: 1px solid #fde047; }
+
+/* ─── Winner banner ──────────────────────────────────────── */
+.er-winner-banner {
+  max-width: 700px;
+  margin: 0 auto 2.5rem;
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 2px solid #fde68a;
+  border-radius: 20px;
+  padding: 1.75rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 8px 32px rgba(251,191,36,.25);
+  animation: pulse-gold 3s infinite;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 30px rgba(250,204,21,.15); }
+  50%       { box-shadow: 0 0 60px rgba(250,204,21,.3);  }
+}
+
+.er-winner-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #facc15;
+  box-shadow: 0 0 20px rgba(250,204,21,.4);
+  flex-shrink: 0;
+}
+
+.er-winner-info { flex: 1; min-width: 0; }
+
+.er-winner-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #d97706;
+  margin-bottom: 4px;
+}
+
+.er-winner-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #92400e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.er-winner-votes {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: #b45309;
+}
+
+.er-winner-crown {
+  font-size: 3rem;
+  flex-shrink: 0;
+  animation: float 2.5s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* ─── Content wrapper ────────────────────────────────────── */
+.er-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* ─── Round card ─────────────────────────────────────────── */
+.er-round-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 2px 16px rgba(99,102,241,.07);
+}
+
+.er-round-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.er-round-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.er-round-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.er-round-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.er-round-meta span { display: flex; align-items: center; gap: 5px; }
+
+.er-total-votes {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+/* ─── Candidate rows ─────────────────────────────────────── */
+.er-candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.er-candidate-row {
+  display: grid;
+  grid-template-columns: 32px 46px 1fr 90px 100px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: background 0.2s;
+}
+
+.er-candidate-row:hover { background: #f1f5f9; }
+
+.er-candidate-row.is-winner {
+  background: linear-gradient(90deg, #fffbeb, #fef9c3);
+  border-color: #fde68a;
+}
+
+.er-candidate-row.is-eliminated {
+  opacity: 0.5;
+}
+
+/* rank badge */
+.er-rank {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.er-rank-1 { background: linear-gradient(135deg,#facc15,#f59e0b); color: #78350f; }
+.er-rank-2 { background: linear-gradient(135deg,#cbd5e1,#94a3b8); color: #1e293b; }
+.er-rank-3 { background: linear-gradient(135deg,#c2855b,#a16207); color: #fff; }
+.er-rank-n { background: rgba(255,255,255,.08); color: #94a3b8; }
+
+/* avatar */
+.er-candidate-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+/* name + bar */
+.er-candidate-info { min-width: 0; }
+
+.er-candidate-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 5px;
+}
+
+.er-bar-track {
+  height: 7px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.er-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+
+.er-bar-fill.bar-winner { background: linear-gradient(90deg, #f59e0b, #facc15); }
+
+/* vote count */
+.er-vote-count {
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.er-pct {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+/* result badge */
+.er-result-badge {
+  justify-self: end;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.er-badge-win      { background: #fef9c3; color: #ca8a04; border: 1px solid #fde047; }
+.er-badge-advanced { background: #dcfce7; color: #16a34a; border: 1px solid #86efac; }
+.er-badge-out      { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+.er-badge-pending  { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+/* counting state */
+.er-counting {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* ─── Back link ──────────────────────────────────────────── */
+.er-back {
+  text-align: center;
+  margin-top: 2.5rem;
+}
+
+.er-back a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 20px;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  background: #fff;
+  transition: all 0.2s;
+  box-shadow: 0 1px 4px rgba(99,102,241,.1);
+}
+.er-back a:hover {
+  background: #eef2ff;
+  border-color: #a5b4fc;
+}
+
+/* ─── Loading / Error ────────────────────────────────────── */
+.er-loading, .er-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-size: 1.1rem;
+  color: #64748b;
+}
+
+@media (max-width: 640px) {
+  .er-round-card { padding: 1.25rem; }
+  .er-candidate-row { grid-template-columns: 28px 38px 1fr 70px; }
+  .er-result-badge { display: none; }
+  .er-winner-banner { flex-direction: column; text-align: center; }
+}

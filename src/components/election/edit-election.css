@@ -1,0 +1,266 @@
+.edit-election-file-panel {
+  padding: 14px;
+  border: 1px dashed #94a3b8;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.edit-election-file-panel input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.edit-election-file-name {
+  margin: 8px 0 0;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.edit-election-file-hint {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── Candidate card ──────────────────────────────────────── */
+.edit-candidate-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.edit-candidate-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 6px 18px rgba(37,99,235,0.08);
+  transform: translateY(-1px);
+}
+
+.edit-candidate-card.is-selected {
+  border-color: #2563eb;
+  background: linear-gradient(160deg, #eff6ff 0%, #f8faff 100%);
+  box-shadow: 0 4px 14px rgba(37,99,235,0.11);
+}
+
+/* Avatar */
+.edit-candidate-avatar,
+.edit-candidate-preview-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+  color: #3730a3;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  flex: 0 0 60px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 2.5px solid #e0e7ff;
+  margin-top: 2px;
+}
+
+.edit-candidate-avatar img,
+.edit-candidate-preview-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Body: info + footer */
+.edit-candidate-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.edit-candidate-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Ghost inputs — look like text, editable on focus */
+.ec-input {
+  width: 100%;
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  padding: 2px 6px;
+  transition: border-color 0.18s, background 0.18s;
+  box-sizing: border-box;
+  outline: none;
+  min-width: 0;
+}
+
+.ec-input:hover {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.ec-input:focus {
+  border-color: #2563eb;
+  background: #fff;
+}
+
+.ec-input-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ec-input-party {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.ec-input-desc {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Footer row: actions */
+.edit-candidate-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Action icon buttons */
+.edit-candidate-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ec-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.18s, transform 0.15s;
+}
+
+.ec-btn-photo {
+  background: #f0f9ff;
+  color: #0ea5e9;
+}
+
+.ec-btn-photo:hover {
+  background: #e0f2fe;
+  transform: scale(1.08);
+}
+
+.ec-btn-edit {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.ec-btn-edit:hover {
+  background: #dcfce7;
+  transform: scale(1.08);
+}
+
+.ec-btn-delete {
+  background: #fff1f2;
+  color: #ef4444;
+}
+
+.ec-btn-delete:hover {
+  background: #ef4444;
+  color: #fff;
+  transform: scale(1.08);
+}
+
+/* Preview card (new candidate not yet saved) */
+.edit-candidate-preview-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 52px 14px 16px;
+  border: 2px dashed #22c55e;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+}
+
+.edit-candidate-preview-avatar {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  background: linear-gradient(135deg, #bbf7d0, #d1fae5);
+  color: #166534;
+  border-color: #a7f3d0;
+}
+
+.edit-candidate-preview-card h5 {
+  margin: 0 0 3px;
+  color: #166534;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.edit-candidate-preview-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.edit-candidate-remove {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.edit-candidate-remove:hover {
+  background: #ef4444;
+  color: #fff;
+  transform: translateY(-50%) scale(1.1);
+}
+
+@media (max-width: 600px) {
+  .edit-candidate-card {
+    flex-wrap: wrap;
+  }
+
+  .edit-candidate-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

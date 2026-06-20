@@ -8,10 +8,6 @@ export const userApi = {
     return response.data;
   },
   // đăng ký
-  register: async (credentials: { email: string; password: string }): Promise<LoginResponse> => {
-    const response = await axiosClient.post('/auth/register', credentials);
-    return response.data;
-  },
 
   // Lấy thông tin cá nhân
   getProfile: async (): Promise<User> => {
@@ -44,6 +40,10 @@ export const userApi = {
   forgotPassword: (email: string) =>
       axiosClient.post('/voter/forgot-password', { email }),
 
+  // Xác thực OTP (chưa đổi pass)
+  verifyOtp: (email: string, otpCode: string) =>
+      axiosClient.post('/voter/verify-otp', { email, otpCode }),
+
   // Gửi OTP + pass mới để cập nhật
   resetPasswordWithOtp: (data: { email: string; otpCode: string; newPassword: string }) =>
       axiosClient.post('/voter/reset-password-otp', data),
@@ -75,6 +75,11 @@ export const userApi = {
     });
     return response.data;
   },
+  deleteUser: async (id: number): Promise<any> => {
+    const response = await axiosClient.delete(`/voter/${id}`);
+    return response.data;
+  },
+
   getAdminHosts: async (): Promise<any[]> => {
     const response = await axiosClient.get('/voter/admin/hosts');
     return response.data;

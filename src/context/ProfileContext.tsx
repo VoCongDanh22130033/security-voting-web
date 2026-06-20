@@ -30,8 +30,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (data && updateAuthUser) {
         updateAuthUser({
           fullName: data.fullName || data.user?.fullName,
-          // Lấy đúng url ảnh từ nhiều field khác nhau tùy theo response của Backend
-          image_url: data.imageUrl || data.image_url || data.user?.imageUrl || data.user?.image_url
+          image_url: data.image_url || data.imageUrl || data.user?.image_url || data.user?.imageUrl
         });
       }
 

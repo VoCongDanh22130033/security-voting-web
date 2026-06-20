@@ -1,3 +1,22 @@
+/* react-datepicker 24h overrides */
+.dtp24-wrapper { width: 100%; }
+.dtp24-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  background: #fff;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: border-color 0.18s;
+}
+.dtp24-input:focus { border-color: #2563eb; }
+.react-datepicker__time-list-item--disabled { display: none; }
+.react-datepicker-popper { z-index: 9999 !important; }
+.flatpickr-calendar { z-index: 9999 !important; }
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -109,3 +128,4 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
